@@ -13,34 +13,45 @@ MahalaDist::MahalaDist(const Mat& input, double smin, Mat reference)
     _k = 0;
     _dimension = input.cols;
     _numberOfPoints = input.rows;
+
+
     if(!_reference.data){
         _reference = Mat::zeros(_dimension, 1, CV_64FC1);
 
-        for (int i = 0; i < _numberOfPoints; i++) {
-            for (int j = 0; j < _dimension; j++) {
-                _reference.at<double>(j) += _inputMatrix.at<double>(i,j);
-            }
+        for (int i = 0; i < _dimension; i++) {
+            _reference.at<double>(i) += (mean(_inputMatrix.col(i)))[0];
         }
-        _reference /= _numberOfPoints;
     }
 
-    Mat discard;
     _a = Mat(_inputMatrix.size(), _inputMatrix.type());
-
-    double sum = 0;
 
     Mat refT = _reference.t();
     for (int i = 0; i < _numberOfPoints; i++) {
         _a.row(i) = _inputMatrix.row(i) - refT;
     }
 
-    if (_dimension < _numberOfPoints) {
-        _c = (_a.t() * _a) / (_numberOfPoints - 1);
-    } else {
-        _c = (_a * _a.t()) / (_numberOfPoints - 1);
-    }
-    SVD::compute(_c, _w, _u, discard);
+    /*
+     * The following if section was supposed to make calculations more
+     * efficient by reducing the size of the _c matrix, but it doesn't
+     * work with the used formula
+     */
+
+    // if (_dimension < _numberOfPoints) {
+        _c = (_a.t() * _a);
+    // } else {
+    //     _c = (_a * _a.t());
+    // }
+    // SVD::compute(_c, _w, _u, discard);
+    Mat discard;
+    SVD::compute(_c, _w, discard, _u);
     discard.release();
+    
+    // _c is not directly used but it's still in the code for completeness' sake
+    _c /= (_numberOfPoints - 1);
+
+    cout << "kkk" << endl;
+    _cInv = _c.inv();
+    cout << "kkk" << endl << endl;
 
     _dirty = 1;
     _setReference = 1;
@@ -70,6 +81,10 @@ int MahalaDist::dimension() {
     return _dimension;
 }
 
+int MahalaDist::numberOfPoints() {
+    return _numberOfPoints;
+}
+
 bool MahalaDist::dirty() {
     return _dirty;
 }
@@ -77,34 +92,35 @@ bool MahalaDist::dirty() {
 /*------------------------------*/
 
 const Mat MahalaDist::u() const {
-    assert(!_dirty);
-
     return _u;
 }
 
-Mat MahalaDist::w() {
-    assert(!_dirty);
+const Mat MahalaDist::uK() const {
+    return _uK;
+}
 
+Mat MahalaDist::w() {
     return _w;
 }
 
 Mat MahalaDist::c() {
-    assert(!_dirty);
-
     return _c;
 }
 
 double MahalaDist::w(int k) {
-    assert(!_dirty);
-
     return _w.at<double>(k);
 }
 
-double MahalaDist::c(int k) {
+double MahalaDist::wSigma2(int k) {
     assert(!_dirty);
 
-    return _c.at<double>(k,k);
+    return _wSigma2.at<double>(k);
 }
+
+
+// double MahalaDist::c(int k) {
+//     return _c.at<double>(k,k);
+// }
 
 double MahalaDist::sigma2() {
     assert(!_dirty);
@@ -114,7 +130,7 @@ double MahalaDist::sigma2() {
 
 /*------------------------------*/
 
-void MahalaDist::setSmin(double smin) {
+void MahalaDist::smin(double smin) {
     _smin = smin;
     _dirty = 1;
 }
@@ -125,33 +141,50 @@ void MahalaDist::build() {
     double w0 = _w.at<double>(0);
     _sigma2 = _smin * w0;
 
+
+    /*
+     * Old way of doing Mat wSigma2 = _w + _sigma2;
+     * It's now only used for calculating _k and can be removed.
+     */
     for(int k = 0; k < _w.rows; k++) {
         if (_w.at<double>(k) >= _sigma2) {
+            // _w.at<double>(k) += _sigma2;
             _k++;
         }
         else{
-            _w.at<double>(k) = 0;
+            // _w.at<double>(k) = 0;
         }
     }
-    if (_dimension < _numberOfPoints) {
-        _u = Mat(_u, Rect(0,0, _k, _u.rows)).clone();
-    } else {
-        Mat b = (_u.t() * _a).t();
-        for (int k = 0; k < _k; k++) {
-            b.col(k) /= cv::norm(b.col(k));
-        }
-        _u = Mat(b, Rect(0,0, _k, b.rows)).clone();
-    }
+
+    /*
+     * The following if sections were supposed to make calculations more
+     * efficient by reducing the size of the _uK matrix, but they don't
+     * work with the used formula
+     */
+    // if (_dimension < _numberOfPoints) {
+        _uK = Mat(_u, Rect(0,0, _k, _u.rows)).clone();
+    // } else {
+    //     Mat b = (_u.t() * _a).t();
+    //     for (int k = 0; k < _k; k++) {
+    //         b.col(k) /= cv::norm(b.col(k));
+    //     }
+    //     _uK = Mat(b, Rect(0,0, _k, b.rows)).clone();
+    //     // _u = b.t();
+    // }
+
+    _wSigma2 = Mat::diag(_w + _sigma2);
+
+    _cSigma2Inv = (_u.t() * _wSigma2.inv() * _u) * (_numberOfPoints-1);
     
-    if (_dimension < _numberOfPoints) {
-        assert(_k <= _dimension);
-        assert(_u.cols == _k);
-        assert(_w.rows == _dimension && _w.cols == 1);
-    } else {
-        assert(_k <= _numberOfPoints);
-        assert(_u.cols == _k);
-        assert(_w.rows == _numberOfPoints && _w.cols == 1);
-    }
+    // if (_dimension < _numberOfPoints) {
+        // assert(_k <= _dimension);
+        // assert(_uK.cols == _k);
+        // assert(_w.rows == _dimension && _w.cols == 1);
+    // } else {
+        // assert(_k <= _numberOfPoints);
+        // assert(_uK.cols == _k);
+        // assert(_w.rows == _numberOfPoints && _w.cols == 1);
+    // }
     _dirty = 0;
 }
 
@@ -163,13 +196,16 @@ double MahalaDist::pointTo(Mat& point1, Mat& point2) {
     assert(point1.rows == point2.rows && point1.rows == _dimension);
 
     Mat diff = point1-point2;
-    double diffSquareSum = cv::sum(diff.mul(diff))[0];
+    Mat diffSq = diff.mul(diff);
+    double diffSquareSum = cv::sum(diffSq)[0];
     double ksum = 0;
 
     Mat proj;
+    Mat projSq;
     for (int k = 0; k < _k; k++) {
-        proj = _u.col(k).t() * diff;
-        double squareSum = cv::sum(proj.mul(proj))[0];
+        proj = _uK.col(k).t() * diff;
+        projSq = proj.mul(proj);
+        double squareSum = cv::sum(projSq)[0];
         ksum += (-w(k) * squareSum) / (_sigma2 * (w(k) + _sigma2));
     }
 
@@ -197,29 +233,20 @@ Mat MahalaDist::pointsTo(Mat& points, Mat& ref) {
 
     Mat diff = Mat(points.size(), CV_64FC1);
     Mat refT = ref.t();
-    Mat rowDiffTemp;//matriz temporaria pra guardas a diferença de cada linha.
+    // Mat rowDiffTemp;//matriz temporaria pra guardas a diferença de cada linha.
     for(int i = 0; i < points.rows; i++){
-        rowDiffTemp = (points.row(i)-refT);
-        rowDiffTemp.copyTo(diff.row(i));
-        // diff.row(i) = (points.row(i)-refT);
+        // rowDiffTemp = (points.row(i)-refT);
+        // rowDiffTemp.copyTo(diff.row(i));
+        diff.row(i) = (points.row(i)-refT);
     }
-    rowDiffTemp.release();
-    Mat proj = diff * (_u);
-    diff = diff.mul(diff);
-    for(int i = 0; i < diff.rows; i++){
-        result.row(i) = cv::sum(diff.row(i));
+    
+    for (int i = 0; i < points.rows; i++) {
+        Mat diffrow = diff.row(i);
+        result.row(i) = (diffrow * _cSigma2Inv * diffrow.t());
+        // result.row(i) = (diffrow * _cInv * diffrow.t());
     }
-    result /= _sigma2;
-    proj = proj.mul(proj);
-    assert(proj.cols == _k);
-    for(int k = 0; k < _k; k++) {
-        proj.col(k) *= ((-w(k))/(_sigma2 * (w(k) + _sigma2)));
-    }
-    for(int i = 0; i < proj.rows; i++){
-        result.row(i) += cv::sum(proj.row(i));
-        result.row(i) *= (_numberOfPoints-1);
-        result.row(i) = Mat(1,1,CV_64FC1,{pow(result.at<double>(i), 1/2)});
-    }
+    pow(result, 0.5, result);
+
     return result;
 }
 
@@ -232,33 +259,12 @@ Mat MahalaDist::pointsToReference(Mat& points) {
 template <typename T> Mat MahalaDist::imageTo(Mat& image, Mat& ref) {
     assert(!_dirty);
 
-    Mat result = Mat(image.size(), CV_64FC1);
-    int numberOfChannels = image.channels();
-
-    Mat linearized = Mat(image.rows * image.cols, numberOfChannels, CV_64FC1);
-    Mat distMat = Mat(image.rows * image.cols, 1, CV_64FC1);
-    Mat bgrArray[numberOfChannels];
-    split(image, bgrArray);
+    Mat linearized = linearizeImage<T>(image);
+    linearized.convertTo(linearized, CV_64FC1);
     
-    for (int c = 0; c < numberOfChannels; c++) {
-        Mat a = bgrArray[c];
-        for (int i = 0; i < image.rows; i++) {
-            for (int j = 0; j < image.cols; j++) {
-                int currentIndex = i*image.cols + j;
-                linearized.at<double>(currentIndex, c) = (double)a.at<T>(i,j);
-            }
-        }
-    }
+    Mat distMat = pointsTo(linearized, ref);
 
-    distMat = pointsTo(linearized, ref);
-    for (int i = 0; i < image.rows; i++) {
-        for (int j = 0; j < image.cols; j++) {
-            int currentIndex = i*image.cols + j;
-            for (int c = 0; c < numberOfChannels; c++) {
-                result.at<double>(i, j) = distMat.at<double>(currentIndex, c);
-            }
-        }
-    }
+    Mat result = delinearizeImage<double>(distMat, image.rows, image.cols);
 
     return result;
 }

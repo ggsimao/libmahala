@@ -1,13 +1,16 @@
 #include "PointCollector.hpp"
 
-PointCollector::PointCollector(Mat& input, Mat& output)
-    : _inputImage(input), _collectedPoints(output), _showCollectedPoints(true) {
-        _inputImage.copyTo(_paintedImage);
+PointCollector::PointCollector(Mat& input)
+    : _inputImage(input), _showCollectedPoints(true) {
+        _paintedImage = _inputImage.clone();
 
         namedWindow("image");
 
         bool pressed = false;
-        CallbackParams cp = {_inputImage, _paintedImage, _collectedPoints, pressed};
+        bool pressedRight = false;
+        CallbackParams cp = {_inputImage, _paintedImage, _collectedPixels, 
+                             _collectedCoordinates, pressed, pressedRight,
+                             _referencePixel, _referenceCoordinate};
 
         setMouseCallback("image", onMouse, (void*)&cp);
 
@@ -16,11 +19,20 @@ PointCollector::PointCollector(Mat& input, Mat& output)
 
             char c = (char) waitKey(1);
 
+            // cout << c << endl;
+
             if (c == 27) break;
 
             switch (c) {
                 case 's':
-                    _showCollectedPoints != _showCollectedPoints;
+                    _showCollectedPoints = !_showCollectedPoints;
+                    break;
+                case 'r':
+                    _collectedPixels.release();
+                    _collectedCoordinates.release();
+                    _referencePixel.release();
+                    _referenceCoordinate.release();
+                    _paintedImage = _inputImage.clone();
                     break;
                 // case 
             }
@@ -29,14 +41,17 @@ PointCollector::PointCollector(Mat& input, Mat& output)
         destroyWindow("image");
     }
 
-PointCollector::PointCollector(const char* path, cv::ImreadModes flags, Mat& output)
-    : _inputImage(imread(path, flags)), _collectedPoints(output), _showCollectedPoints(true) {
+PointCollector::PointCollector(const char* path, cv::ImreadModes flags)
+    : _inputImage(imread(path, flags)), _showCollectedPoints(true) {
         _inputImage.copyTo(_paintedImage);
 
         namedWindow("image");
 
         bool pressed = false;
-        CallbackParams cp = {_inputImage, _paintedImage, _collectedPoints, pressed};
+        bool pressedRight = false;
+        CallbackParams cp = {_inputImage, _paintedImage, _collectedPixels, 
+                             _collectedCoordinates, pressed, pressedRight, 
+                             _referencePixel, _referenceCoordinate};
 
         setMouseCallback("image", onMouse, (void*)&cp);
 
@@ -45,11 +60,20 @@ PointCollector::PointCollector(const char* path, cv::ImreadModes flags, Mat& out
 
             char c = (char) waitKey(1);
 
+            // cout << c << endl;
+
             if (c == 27) break;
 
             switch (c) {
                 case 's':
-                    _showCollectedPoints != _showCollectedPoints;
+                    _showCollectedPoints = !_showCollectedPoints;
+                    break;
+                case 'r':
+                    _collectedPixels.release();
+                    _collectedCoordinates.release();
+                    _referencePixel.release();
+                    _referenceCoordinate.release();
+                    _paintedImage = _inputImage.clone();
                     break;
                 // case 
             }
@@ -72,8 +96,17 @@ Mat& PointCollector::paintedImage() {
     return _paintedImage;
 }
 
-Mat& PointCollector::collectedPoints() {
-    return _collectedPoints;
+Mat& PointCollector::collectedPixels() {
+    return _collectedPixels;
+}
+Mat& PointCollector::collectedCoordinates() {
+    return _collectedCoordinates;
+}
+Mat& PointCollector::referencePixel() {
+    return _referencePixel;
+}
+Mat& PointCollector::referenceCoordinate() {
+    return _referenceCoordinate;
 }
 
 void PointCollector::run() {
@@ -85,74 +118,84 @@ void PointCollector::run() {
 void PointCollector::onMouse(int event, int x, int y, int flags, void* param) {
     CallbackParams* mp = (CallbackParams*) param;
     bool& pressed = mp->pressed;
+    bool& pressedRight = mp->pressedRight;
     // cout << "kkk" << endl;
     if (event == EVENT_LBUTTONDOWN) pressed = true;
     if (event == EVENT_LBUTTONUP) pressed = false;
-    if (pressed) {
-    // if (first) {
-    //   firstPoint = Mat(2,1, CV_64FC1);
-    //   firstPoint.at<double>(0) = x;
-    //   firstPoint.at<double>(1) = y;
-    //   // firstPoint.at<double>(2) = 0.0;
-    //   first = 0;
+    if (event == EVENT_RBUTTONDOWN) pressedRight = true;
+    if (event == EVENT_RBUTTONUP) pressedRight = false;
+    if (pressed || pressedRight) {
+        int chans = mp->img.channels();
 
-      circle(mp->paintedImg, Point(x,y), 3, Scalar(255, 255, 255), -1);
-    // } else {
-    //   circle(mp->img, Point(x,y), 3, Scalar(255), -1);
-    // }
+        Mat bgr = Mat(1, chans, CV_64FC1);    
+        Mat splitmat[chans];
+        split(Mat(mp->img, Rect(x,y,1,1)).clone(), splitmat);
 
-    int chans = mp->img.channels();
+        switch (mp->img.type() % 8) {
+            case 0:
+                for (int i = 0; i < chans; i++) {
+                    bgr.at<double>(0,i) = (double)splitmat[i].at<uchar>(0,0);    
+                }
+                break;
+            case 1:
+                for (int i = 0; i < chans; i++) {
+                    bgr.at<double>(0,i) = (double)splitmat[i].at<schar>(0,0);    
+                }
+                break;
+            case 2:
+                for (int i = 0; i < chans; i++) {
+                    bgr.at<double>(0,i) = (double)splitmat[i].at<ushort>(0,0);    
+                }
+                break;
+            case 3:
+                for (int i = 0; i < chans; i++) {
+                    bgr.at<double>(0,i) = (double)splitmat[i].at<short>(0,0);    
+                }
+                break;
+            case 4:
+                for (int i = 0; i < chans; i++) {
+                    bgr.at<double>(0,i) = (double)splitmat[i].at<int>(0,0);    
+                }
+                break;
+            case 5:
+                for (int i = 0; i < chans; i++) {
+                    bgr.at<double>(0,i) = (double)splitmat[i].at<float>(0,0);    
+                }
+                break;
+            case 6:
+                for (int i = 0; i < chans; i++) {
+                    bgr.at<double>(0,i) = (double)splitmat[i].at<double>(0,0);    
+                }
+                break;
+            default:
+                assert(mp->img.type() % 8 != 7 || mp->img.type() >= 0);
+        }
+        // bgr.at<double>(0,0) = (double)mp->img.at<Vec3b>(y,x)[0];
+        // bgr.at<double>(0,1) = (double)mp->img.at<Vec3b>(y,x)[1];
+        // bgr.at<double>(0,2) = (double)mp->img.at<Vec3b>(y,x)[2];
 
-    Mat bgr = Mat(1, chans, CV_64FC1);
-    Mat splitmat[chans];
-    split(Mat(mp->img, Rect(x,y,1,1)).clone(), splitmat);
+        // imshow("image", mp->img);
 
-    switch (mp->img.type() % 8) {
-        case 0:
-            for (int i = 0; i < chans; i++) {
-                bgr.at<double>(0,i) = (double)splitmat[i].at<uchar>(0,0);    
+        Mat xy = Mat(1, 2, CV_64FC1);
+        xy.at<double>(0) = x;
+        xy.at<double>(1) = y;
+
+        if (pressedRight) {
+            mp->referencePixel = bgr.t();
+            mp->referenceCoordinate = xy.t();
+            mp->paintedImg = mp->img.clone();
+            circle(mp->paintedImg, Point(x,y), 5, Scalar(255, 255, 255), -1);
+            for (int i = 0; i < mp->coordinates.rows; i++) {
+                Point toDraw = Point(mp->coordinates.at<double>(i, 0), mp->coordinates.at<double>(i, 1));
+                circle(mp->paintedImg, toDraw, 3, Scalar(255, 255, 255), -1);
             }
-            break;
-        case 1:
-            for (int i = 0; i < chans; i++) {
-                bgr.at<double>(0,i) = (double)splitmat[i].at<schar>(0,0);    
-            }
-            break;
-        case 2:
-            for (int i = 0; i < chans; i++) {
-                bgr.at<double>(0,i) = (double)splitmat[i].at<ushort>(0,0);    
-            }
-            break;
-        case 3:
-            for (int i = 0; i < chans; i++) {
-                bgr.at<double>(0,i) = (double)splitmat[i].at<short>(0,0);    
-            }
-            break;
-        case 4:
-            for (int i = 0; i < chans; i++) {
-                bgr.at<double>(0,i) = (double)splitmat[i].at<int>(0,0);    
-            }
-            break;
-        case 5:
-            for (int i = 0; i < chans; i++) {
-                bgr.at<double>(0,i) = (double)splitmat[i].at<float>(0,0);    
-            }
-            break;
-        case 6:
-            for (int i = 0; i < chans; i++) {
-                bgr.at<double>(0,i) = (double)splitmat[i].at<double>(0,0);    
-            }
-            break;
-        default:
-            assert(mp->img.type() % 8 != 7 || mp->img.type() >= 0);
+            // cout << mp->coordinates.rows << endl;
+        } else {
+            mp->pixels.push_back(bgr);
+            mp->coordinates.push_back(xy);
+            circle(mp->paintedImg, Point(x,y), 3, Scalar(255, 255, 255), -1);
+            // cout << mp->coordinates.rows << endl;
+        }
+        // cout << mp->points << endl;
     }
-    // bgr.at<double>(0,0) = (double)mp->img.at<Vec3b>(y,x)[0];
-    // bgr.at<double>(0,1) = (double)mp->img.at<Vec3b>(y,x)[1];
-    // bgr.at<double>(0,2) = (double)mp->img.at<Vec3b>(y,x)[2];
-
-    // imshow("image", mp->img);
-
-    mp->points.push_back(bgr);
-    // cout << mp->points << endl;
-  }
 }

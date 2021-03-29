@@ -11,6 +11,9 @@ PolyMahalaDist::PolyMahalaDist(Mat input, double smin, int l, Mat reference)
     _numberOfPoints = input.rows;
     _polynomialDimension = pow(2, l);
 
+    _dirty = 1;
+    _setReference = 1;
+
     if(!_reference.data){
         _reference = Mat::zeros(_dimension, 1, CV_64FC1);
         for (int i = 0; i < _numberOfPoints; i++) {
@@ -19,10 +22,8 @@ PolyMahalaDist::PolyMahalaDist(Mat input, double smin, int l, Mat reference)
             }
         }
         _reference /= _numberOfPoints;
+        _setReference = 0;
     }
-
-    _dirty = 1;
-    _setReference = 1;
 
     assert(_reference.rows == _dimension);
     assert(_reference.cols == 1);
@@ -57,57 +58,42 @@ int PolyMahalaDist::l() {
 
 /*----------------------------------------------------------------------------*/
 
-void PolyMahalaDist::setSmin(double smin) {
+void PolyMahalaDist::smin(double smin) {
     _smin = smin;
+    _dirty = 1;
 }
 
-
-
-void PolyMahalaDist::setInputMatrix(Mat input) {
-    _inputMatrix = input;
-    _dimension = input.rows;
-    _numberOfPoints = input.cols;
-    _setReference = 1;
-}
-
-
-
-void PolyMahalaDist::setL(int l) {
+void PolyMahalaDist::l(int l) {
     _l = l;
     _polynomialDimension = pow(2, l);
+    _dirty = 1;
 }
 
 /*----------------------------------------------------------------------------*/
 
 Mat PolyMahalaDist::polynomialProjection(Mat vec) {
-    Mat gvec = Mat(vec.rows, (vec.cols + 2) * (vec.cols + 1) / 2 - 1, vec.type());
+    Mat gvec; //= Mat(vec.rows, (vec.cols + 2) * (vec.cols + 1) / 2 - 1, vec.type());
 
-    Mat mats[2] = {vec, Mat::ones(vec.rows, 1, vec.type())};
+    cout << "vec.size(): " << endl;
+    cout << vec.size() << endl;
 
-    Mat projinput;
-    hconcat(mats, 2, projinput);
+    Mat vec_sq = vec.mul(vec); // square each of vec's elements
+    Mat vec_cross = Mat(vec.rows, vec.cols * (vec.cols - 1) / 2, vec.type()); // cross products between vec's elements
 
     int k = 0;
-
-    //TODO - o for de n = 0 até vec.rows esta por dentro. Ele devia ser o for mais externo. Ajuda a dar menos miss em cach.
+    // calculates the cross products:
     for (int i = 0; i < vec.cols; i++) {
-        for (int j = i; j < projinput.cols; j++) {
-            for (int n = 0; n < vec.rows; n++) {
-                gvec.at<double>(n, k) = vec.at<double>(n, i) * projinput.at<double>(n, j);
-            }
+        for (int j = i+1; j < vec.cols; j++) {
+            vec_cross.col(k) = vec.col(i).mul(vec.col(j));
             k++;
         }
     }
 
-    assert(k == (vec.cols + 2) * (vec.cols + 1) / 2 - 1);
+    Mat mats[3] = {vec, vec_sq, vec_cross};
+    hconcat(mats, 3, gvec);
 
-    //WHAT THE FUCK IS THIS!!!??? GIULIO!!!
-    double sum = 0;
-    for (int i = 0; i < vec.rows; i++) {
-        for (int j = i; j < projinput.rows; j++) {
-            //TA VAZIO!!!
-        }
-    }
+    cout << "gvec.size(): " << endl;
+    cout << gvec.size() << endl;
 
     return gvec;
 }
@@ -116,10 +102,15 @@ Mat PolyMahalaDist::polynomialProjection(Mat vec) {
 
 vector<int> PolyMahalaDist::filterByVariance(Mat vec) {
     vector<int> indexes;
-    Mat c = (vec * vec.t()) / (vec.cols - 1);
+    Mat c = (vec.t() * vec) / (vec.rows - 1); // calculate covariance matrix
 
-    for (int i = 0; i < vec.rows; i++) {
-        if (c.at<double>(i,i) > _smin) indexes.push_back(i);
+    cout << "vec.size(): " << endl;
+    cout << vec.size() << endl;
+    cout << "c.size(): " << endl;
+    cout << c.size() << endl;
+
+    for (int i = 0; i < vec.cols; i++) {
+        if (c.at<double>(i,i) > _smin) indexes.push_back(i); // choose the indexes
     }
 
     return indexes;
@@ -168,13 +159,45 @@ Mat PolyMahalaDist::filterByVariancePC(const Mat &data, std::vector<int> &outInd
 }
 
 Mat PolyMahalaDist::filteringMultiplication(Mat slaveVec, Mat masterVec, vector<int> indexes) {
-    Mat op;
+    Mat result;
+    // cout << "filteringMultiplication" << endl;
+
+    cout << "indexes.size(): " << endl;
+    cout << indexes.size() << endl;
+
+    // cout << "slaveVec: " << endl;
+    // cout << slaveVec << endl;
+    cout << "slaveVec.size(): " << endl;
+    cout << slaveVec.size() << endl;
+
+    // cout << "masterVec: " << endl;
+    // cout << masterVec << endl;
+    cout << "masterVec.size(): " << endl;
+    cout << masterVec.size() << endl;
+
+    masterVec = masterVec.t();
+
+    Mat temp = slaveVec * masterVec;
 
     for (int i = 0; i < indexes.size(); i++) {
-        op.push_back(masterVec.row(indexes[i]));
+        result.push_back(temp.row(indexes[i]));
     }
 
-    return slaveVec * op;
+    // op = op.t();
+
+    // cout << "op: " << endl;
+    // cout << op << endl;
+    cout << "op.size(): " << endl;
+    cout << temp.size() << endl;
+
+    // Mat result = slaveVec * op;
+
+    // cout << "result: " << endl;
+    // cout << result << endl;
+    cout << "result.size(): " << endl;
+    cout << result.size() << endl;
+
+    return result.t();
 }
 
 Mat PolyMahalaDist::removeNullDimensions(Mat &data, vector<int> &validDimesions)
@@ -182,36 +205,31 @@ Mat PolyMahalaDist::removeNullDimensions(Mat &data, vector<int> &validDimesions)
     assert(data.cols >= validDimesions.size());
     Mat result = Mat(data.rows, validDimesions.size(), data.type());
 
+    cout << "data.size(): " << endl;
+    cout << data.size() << endl;
+
     for(int j = 0; j < validDimesions.size(); j++){
         data.col(validDimesions[j]).copyTo(result.col(j));
     }
+
+    cout << "result.size(): " << endl;
+    cout << result.size() << endl;
     return result;
 }
-
-Mat PolyMahalaDist::u(MahalaDist md) {
-    assert (!md.dirty());
-//    Mat us, ut = md.u().t();
-
-//    for (int i = 0; i < md.w().rows; i++) {
-//        if (md.c(i) >= md.sigma2()) {
-//            us.push_back(ut.col(i).t());
-//        }
-//    }
-
-//    assert(us.cols == md.dimension());
-
-//    //us = Mat(us.t());
-
-//    return us;
-    return md.u();
-}
-
-
 
 void PolyMahalaDist::build() {
     if (!_dirty) return;
 
-    _baseDist = MahalaDist(_inputMatrix, _smin, _reference);
+    /*
+     * A GOOD PORTION OF THIS METHOD WAS WRITTEN WITH A
+     * LINEAR MAHALANOBIS DISTANCE FORMULA THAT FILTERED OUT
+     * DIMENSIONS BASED ON _SMIN, BUT THAT FORMULA IS NOT
+     * USED IN THIS LIBRARY AT THE MOMENT, SO SOME STEPS
+     * MIGHT EITHER BE REDUNDANT, USELESS OR STRAIGHT UP
+     * NOT MAKE SENSE.
+     */
+
+    _baseDist = MahalaDist(_inputMatrix, _smin, _reference); // 0-order polynomial Mahalanobis distance
     _baseDist.build();
 
     _expandedReferences.clear();
@@ -220,8 +238,9 @@ void PolyMahalaDist::build() {
     _indexesVector.clear();
 
     double min, max, maxAbs;
-    vector<int> indexes;
 
+    // iteration variables:
+    vector<int> indexes;
     MahalaDist nextDist = _baseDist;
     Mat nextInput = _inputMatrix.clone();
     Mat nextReference = _reference.clone();
@@ -231,54 +250,73 @@ void PolyMahalaDist::build() {
         indexes.push_back(i);
 
     for (int l = 0; l < _l; l++) {
-        Mat nextU = u(nextDist);
+        Mat nextU = nextDist.u(); // gets filtered U matrix
 
-        _indexesVector.push_back(indexes);
+        cout << "_indexesVector.push_back(indexes) -> begin" << endl;
+        _indexesVector.push_back(indexes); // select non-null U indexes
+        cout << "_indexesVector.push_back(indexes) -> end" << endl;
 
-        nextInput = filteringMultiplication(nextU, nextInput, indexes);
+        // cout << nextU << endl;
+        cout << "nextInput = filteringMultiplication(nextU, nextInput, indexes) -> begin" << endl;
+        nextInput = filteringMultiplication(nextU, nextInput, indexes); // multiplies U by the vector neighborhood, then filter out dimensions
+        cout << "nextInput = filteringMultiplication(nextU, nextInput, indexes) -> end" << endl;
 #if NORMALIZE
         minMaxLoc(nextInput, &min, &max);
         maxAbs = abs(min) > abs(max) ? abs(min) : abs(max);
         if (maxAbs > _smin) nextInput /= maxAbs;
 #endif
-        nextInput = polynomialProjection(nextInput);
+        cout << "nextInput = polynomialProjection(nextInput); -> begin" << endl;
+        nextInput = polynomialProjection(nextInput); // projects the current neighborhood
+        cout << "nextInput = polynomialProjection(nextInput); -> end" << endl;
 
-        nextReference = filteringMultiplication(nextU, nextReference, indexes);
+        nextReference = nextReference.t();
+
+        cout << "nextReference = filteringMultiplication(nextU, nextReference, indexes) -> begin" << endl;
+        nextReference = filteringMultiplication(nextU, nextReference, indexes); // same operation as above but with the reference vector
+        cout << "nextReference = filteringMultiplication(nextU, nextReference, indexes) -> end" << endl;
 #if NORMALIZE
         minMaxLoc(nextReference, &min, &max);
         maxAbs = abs(min) > abs(max) ? abs(min) : abs(max);
         if (maxAbs > _smin) nextReference /= maxAbs;
 #endif
-        nextReference = polynomialProjection(nextReference);
+        cout << "nextReference = polynomialProjection(nextReference) -> begin" << endl;
+        nextReference = polynomialProjection(nextReference); // same operation as above but with the reference vector
+        cout << "nextReference = polynomialProjection(nextReference) -> end" << endl;
 
-        cout << "oi" << endl << nextInput.rows << endl << nextInput.cols << endl;
+        nextReference = nextReference.t();
 
-        if (_setReference) {
-            nextBaseReference = filteringMultiplication(nextU, nextBaseReference, indexes);
-#if NORMALIZE
-            minMaxLoc(nextBaseReference, &min, &max);
-            maxAbs = abs(min) > abs(max) ? abs(min) : abs(max);
-            if (maxAbs > _smin) nextBaseReference /= maxAbs;
-#endif
-            nextBaseReference = polynomialProjection(nextBaseReference);
+        cout << "indexes = filterByVariance(nextInput) -> begin" << endl;
+        indexes = filterByVariance(nextInput); // choose dimensions of projected input to be filtered out
+        cout << "indexes = filterByVariance(nextInput) -> end" << endl;
 
-            indexes = filterByVariance(nextInput);
-            nextInput = filteringMultiplication(Mat::eye(indexes.size(), indexes.size(), nextU.type()), nextInput, indexes);
-            nextDist = MahalaDist(nextInput, _smin, nextBaseReference);
-        } else {
-            indexes = filterByVariance(nextInput);
-            nextInput = filteringMultiplication(Mat::eye(indexes.size(), indexes.size(), nextU.type()), nextInput, indexes);
-            nextDist = MahalaDist(nextInput, _smin);
-        }
+        cout << "nextInput = filteringMultiplication(Mat::eye(indexes.size(), indexes.size(), nextU.type()), nextInput, indexes) -> begin" << endl;
+        nextInput = filteringMultiplication(Mat::eye(nextInput.cols, nextInput.cols, nextU.type()), nextInput, indexes); // filters out chosen dimensions
+        cout << "nextInput = filteringMultiplication(Mat::eye(indexes.size(), indexes.size(), nextU.type()), nextInput, indexes) -> end" << endl;
 
+        // cout << "oi" << endl << nextInput.rows << endl << nextInput.cols << endl;
+        // cout << _setReference << endl;
+
+        cout << "nextDist = MahalaDist(nextInput, _smin, nextReference) -> begin" << endl;
+        nextDist = MahalaDist(nextInput, _smin, nextReference); // create projected Mahalanobis metric
+        cout << "nextDist = MahalaDist(nextInput, _smin, nextReference) -> end" << endl;
+
+        cout << "nextDist.build() -> begin" << endl;
         nextDist.build();
+        cout << "nextDist.build() -> end" << endl;
 
-        //        if (nextDist.maximumVariance() <= nextDist.smin()) break;
+        // cout << "nextDist buildada" << endl;
+        cout << "l=" << l << "/_l=" << _l << endl;
 
+        // if (nextDist.maximumVariance() <= nextDist.smin()) break;
+
+        // save expanded variables for later when calculating distances
         _expandedReferences.push_back(nextReference);
         _expandedUs.push_back(nextU);
         _expandedDists.push_back(nextDist);
+        cout << "push_back" << endl;
     }
+
+    cout << "build terminado" << endl;
 
     _dirty = 0;
 }
@@ -305,8 +343,8 @@ void PolyMahalaDist::buildPC()
 
     for (int l = 0; l < _l-1; l++) {
         const Mat nextU = nextDist.u();
-        assert(nextInput.cols == nextU.rows);
-        assert(nextReference.rows == nextU.rows);//next reference will be transposed
+        assert(nextInput.cols == nextU.cols);
+        assert(nextReference.rows == nextU.cols);//next reference will be transposed
 
         //Projetando a matriz de dados de treino.
         Mat inputProj = nextInput * nextU;
@@ -442,42 +480,108 @@ double PolyMahalaDist::pointToReferencePC(Mat point)
 Mat PolyMahalaDist::pointsTo(Mat points, Mat point) {
     assert(!_dirty);
 
-    Mat sum = Mat::zeros(1, points.cols, points.type());
+    Mat sum = Mat::zeros(points.rows, 1, points.type()); // matrix in which the results will be stored
 
+    // iteration variables
     Mat nextPoints = points.clone();
     Mat nextPoint = point.clone();
 
     double min, max, maxAbs;
 
+    // This for loop perform the same operations the build method does on the U, input and reference
+    // matrices, but on the points and point matrices instead. It then calculates the l-th Mahalanobis
+    // distance for each l that was stored in the vectors calculated by the build method and adds it
+    // to the partial sum. See G. Grudic et al (2006) for reference.
     for (int l = 0; l < _expandedUs.size(); l++) {
+        cout << "nextPoints = filteringMultiplication(_expandedUs[l], nextPoints, _indexesVector[l]) -> begin" << endl;
         nextPoints = filteringMultiplication(_expandedUs[l], nextPoints, _indexesVector[l]);
+        cout << "nextPoints = filteringMultiplication(_expandedUs[l], nextPoints, _indexesVector[l]) -> end" << endl;
 #if NORMALIZE
         minMaxLoc(nextPoints, &min, &max);
         maxAbs = abs(min) > abs(max) ? abs(min) : abs(max);
         if (maxAbs > _smin) nextPoints /= maxAbs;
 #endif
+        cout << "nextPoints = polynomialProjection(nextPoints) -> begin" << endl;
         nextPoints = polynomialProjection(nextPoints);
+        cout << "nextPoints = polynomialProjection(nextPoints) -> end" << endl;
 
+        nextPoint = nextPoint.t();
+        cout << "nextPoint = filteringMultiplication(_expandedUs[l], nextPoint, _indexesVector[l]) -> begin" << endl;
         nextPoint = filteringMultiplication(_expandedUs[l], nextPoint, _indexesVector[l]);
+        cout << "nextPoint = filteringMultiplication(_expandedUs[l], nextPoint, _indexesVector[l]) -> end" << endl;
 #if NORMALIZE
         minMaxLoc(nextPoint, &min, &max);
         maxAbs = abs(min) > abs(max) ? abs(min) : abs(max);
         if (maxAbs > _smin) nextPoint /= maxAbs;
 #endif
+        cout << "nextPoint = polynomialProjection(nextPoint) -> begin" << endl;
         nextPoint = polynomialProjection(nextPoint);
-
+        cout << "nextPoint = polynomialProjection(nextPoint) -> end" << endl;
+        nextPoint = nextPoint.t();
+        
         MahalaDist nextDist = _expandedDists[l];
 
+        cout << "sum += nextDist.pointsTo(nextPoints, nextPoint) -> begin" << endl;
         sum += nextDist.pointsTo(nextPoints, nextPoint);
+        cout << "sum += nextDist.pointsTo(nextPoints, nextPoint) -> end" << endl;
     }
 
-    Mat finalSum = sum + _baseDist.pointsTo(points, point);
+    Mat finalSum = sum + _baseDist.pointsTo(points, point); // Add the 0-order distance
 
     return finalSum;
+
+    // assert(points.cols == _dimension);
+    // assert(points.type() == CV_64FC1);
+
+    // Mat base = _baseDist.pointsTo(points, point);
+
+    // MahalaDist nextDist = _baseDist;
+    // Mat nextPoints = points;
+    // Mat nextPoint = point;
+    // Mat sum = Mat::zeros(base.size(), CV_64FC1);
+    // cout << "base.size(): " << endl;
+    // cout << base.size() << endl;
+    // cout << "base.rows: " << endl;
+    // cout << base.rows << endl;
+    // cout << "base.cols: " << endl;
+    // cout << base.cols << endl;
+    // for(int i = 0; i < _expandedDists.size(); i++){
+    //     Size presize = nextPoint.t().size(), presizes = nextPoints.size();
+    //     cout << "nextPoints = nextPoints * nextDist.u();" << endl;
+    //     cout << "nextPoint = nextPoint * nextDist.u();" << endl;
+    //     nextPoints = nextPoints * nextDist.u();
+    //     nextPoint = nextPoint.t();
+    //     nextPoint = nextPoint * nextDist.u();
+    //     nextPoint = nextPoint.t();
+    //     cout << nextPoints.size() << " = " << presizes << " * " << nextDist.u().size() << endl;
+    //     cout << nextPoint.size() << " = " << presize << " * " << nextDist.u().size() << endl;
+
+
+
+    //     //normaliza
+    //     nextPoints /= _maxAbsVector[i];
+    //     nextPoint /= _maxAbsVector[i];
+
+    //     //expande
+    //     nextPoints = polynomialProjection(nextPoints);
+    //     nextPoint = nextPoint.t();
+    //     nextPoint = polynomialProjection(nextPoint);
+    //     nextPoint = nextPoint.t();
+
+    //     //filtra
+    //     nextPoints = removeNullDimensions(nextPoints, _indexesVector[i]);
+    //     nextPoint = nextPoint.t();
+    //     nextPoint = removeNullDimensions(nextPoint, _indexesVector[i]);
+    //     nextPoint = nextPoint.t();
+    //     nextDist = _expandedDists[i];
+    //     sum += nextDist.pointsTo(nextPoints, nextPoint);
+    // }
+    // return base + sum;
 }
 
 
-
+// Same as above, but the operations for the reference vector were
+// already performed by the build method, so they're skipped here.
 Mat PolyMahalaDist::pointsToReference(Mat points) {
     assert(!_dirty);
 
@@ -532,3 +636,35 @@ Mat PolyMahalaDist::pointsToReferencePC(Mat points)
     }
     return base + sum;
 }
+
+template <typename T> Mat PolyMahalaDist::imageTo(Mat& image, Mat& ref) {
+    assert(!_dirty);
+
+    Mat linearized = linearizeImage<T>(image);
+    linearized.convertTo(linearized, CV_64FC1);
+    
+    Mat distMat = pointsTo(linearized, ref);
+
+    Mat result = delinearizeImage<double>(distMat, image.rows, image.cols);
+
+    return result;
+}
+
+template <typename T> Mat PolyMahalaDist::imageToReference(Mat& image) {
+    return imageTo<T>(image, _reference);
+}
+
+template Mat PolyMahalaDist::imageTo<uchar>(Mat& image, Mat& ref);
+template Mat PolyMahalaDist::imageTo<schar>(Mat& image, Mat& ref);
+template Mat PolyMahalaDist::imageTo<ushort>(Mat& image, Mat& ref);
+template Mat PolyMahalaDist::imageTo<short>(Mat& image, Mat& ref);
+template Mat PolyMahalaDist::imageTo<int>(Mat& image, Mat& ref);
+template Mat PolyMahalaDist::imageTo<float>(Mat& image, Mat& ref);
+template Mat PolyMahalaDist::imageTo<double>(Mat& image, Mat& ref);
+template Mat PolyMahalaDist::imageToReference<uchar>(Mat& image);
+template Mat PolyMahalaDist::imageToReference<schar>(Mat& image);
+template Mat PolyMahalaDist::imageToReference<ushort>(Mat& image);
+template Mat PolyMahalaDist::imageToReference<short>(Mat& image);
+template Mat PolyMahalaDist::imageToReference<int>(Mat& image);
+template Mat PolyMahalaDist::imageToReference<float>(Mat& image);
+template Mat PolyMahalaDist::imageToReference<double>(Mat& image);

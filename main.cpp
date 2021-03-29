@@ -2,153 +2,119 @@
 #include "PolynomialMahalanobisDistance.hpp"
 #include "BhattacharyyaDistance.hpp"
 #include "PointCollector.hpp"
-#include "CoordinateCollector.hpp"
+#include "imageUtils.cpp"
 
 using namespace cv;
 using namespace std;
 
 int main(int argc, char** argv)
 {
-    const char* filename = argc >= 2 ? argv[1] : "coelho.jpg";
+    const char* filename = argc >= 2 ? argv[1] : "images/coelho.jpg";
 
     bool coordinates = true;
     Mat mat = Mat();
     Mat result;
     PointCollector pc;
-    CoordinateCollector cc;
     Mat resultCV, resultDiff;
+    MahalaDist md;
+    // PolyMahalaDist pmd;
+    Mat img;
+    Mat average = Mat();
+    int size = 512;
+    // Mat referenceCoordinates;
 
     if (!coordinates) {
-        pc = PointCollector(filename, IMREAD_COLOR, mat);
-        Mat img = imread(filename, IMREAD_COLOR);
-        result = Mat(img.size(), CV_64FC1);
-        mat = pc.collectedPoints();
-
-        MahalaDist md = MahalaDist(mat, 0.00000001);
-        md.build();
-
-        result = md.imageToReference<uchar>(img);
-
-        {
-            resultCV = Mat(img.size(), CV_64FC1);
-            int numberOfChannels = img.channels();
-
-            Mat linearized = Mat(img.rows * img.cols, numberOfChannels, CV_64FC1);
-            Mat distMat = Mat(img.rows * img.cols, 1, CV_64FC1);
-            Mat bgrArray[numberOfChannels];
-            split(img, bgrArray);
-            
-            for (int c = 0; c < numberOfChannels; c++) {
-                Mat a = bgrArray[c];
-                for (int i = 0; i < img.rows; i++) {
-                    for (int j = 0; j < img.cols; j++) {
-                        int currentIndex = i*img.cols + j;
-                        linearized.at<double>(currentIndex, c) = (double)a.at<uchar>(i,j);
-                    }
-                }
-            }
-
-            Mat icovar = md.c();
-            Mat average = md.reference();
-
-            std::vector<double> averageVec;
-            for (int i = 0; i < average.rows; i++)
-                averageVec.push_back(average.at<double>(i));
-
-            for (int i = 0; i < linearized.rows; i++) {
-                Mat pixel = linearized.row(i);
-                std::vector<double> pixelVec;
-                for (int i = pixel.cols; i > 0; i--)
-                    pixelVec.push_back(pixel.at<double>(i-1));
-                distMat.at<double>(i) = Mahalanobis(pixelVec, averageVec, icovar);
-            }
-            for (int i = 0; i < img.rows; i++) {
-                for (int j = 0; j < img.cols; j++) {
-                    int currentIndex = i*img.cols + j;
-                    for (int c = 0; c < numberOfChannels; c++) {
-                        resultCV.at<double>(i, j) = distMat.at<double>(currentIndex, c);
-                    }
-                }
-            }
-        }
-
-        resultDiff = result - resultCV;
-        sqrt(resultDiff, resultDiff);
-        resultDiff = resultDiff.mul(resultDiff);
+        img = imread(filename, IMREAD_COLOR);
+        pc = PointCollector(img);
+        mat = pc.collectedPixels();
+        average = pc.referencePixel();
     } else {
-        Mat img = Mat::zeros(256, 256, CV_64FC1);
-        Mat average = Mat();
-        cc = CoordinateCollector(mat, average);
-        mat = cc.collectedPoints();
-        average = cc.reference();
+        Mat img = Mat::zeros(size, size, CV_8UC1);
+        pc = PointCollector(img);
+        mat = pc.collectedCoordinates();
+        // double data[6] = {501, 304, 457, 352, 406, 409};
+        // mat = Mat(3, 2, CV_64FC1, data);
+        average = pc.referenceCoordinate();
+    }
 
+    md = MahalaDist(mat, 0.00000000000001, average);
+    md.build();
+    PolyMahalaDist pmd = PolyMahalaDist(mat, 0.000001, 2, average);
+    pmd.build();
+    average = md.reference();
 
-        MahalaDist md = MahalaDist(mat, 0.00000001, average);
-        cout << average << endl;
-        md.build();
+    if (coordinates) {
+        img = Mat(size, size, CV_64FC2);
 
-        result = md.coordinateToReference();
-
-        {
-            resultCV = Mat(256, 256, CV_64FC1);
-            resultDiff = Mat(256, 256, CV_64FC1);
-
-            Mat linearized = Mat(256 * 256, 2, CV_64FC1);
-            Mat distMat = Mat(1, 256 * 256, CV_64FC1);
-
-            for (int i = 0; i < 256; i++) {
-                for (int j = 0; j < 256; j++) {
-                    int currentIndex = i*256 + j;
-                    linearized.at<double>(currentIndex, 0) = (double)j;
-                    linearized.at<double>(currentIndex, 1) = (double)i;
-                }
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                img.at<Vec2d>(i, j) = Vec2d(j, i);
             }
-
-            Mat icovar = md.c();
-
-            std::vector<double> averageVec;
-            for (int i = 0; i < average.rows; i++)
-                averageVec.push_back(average.at<double>(i));
-
-            for (int i = 0; i < linearized.rows; i++) {
-                Mat pixel = linearized.row(i);
-                std::vector<double> pixelVec;
-                for (int i = pixel.cols; i > 0; i--)
-                    pixelVec.push_back(pixel.at<double>(i-1));
-                distMat.at<double>(i) = Mahalanobis(pixelVec, averageVec, icovar);
-            }
-
-            for (int i = 0; i < 256; i++) {
-                for (int j = 0; j < 256; j++) {
-                    resultCV.at<double>(i,j) = distMat.at<double>(i*256 + j);
-                }
-            }
-
-            for (int i = 0; i < md.inputMatrix().rows; i++) {
-                circle(resultCV, Point(md.inputMatrix().at<double>(i,0), md.inputMatrix().at<double>(i,1)), 3, 1, -1);
-            }
-            circle(resultCV, Point(md.reference()), 5, 1, -1);
-
-            resultDiff = result - resultCV;
-            sqrt(resultDiff, resultDiff);
-            resultDiff = resultDiff.mul(resultDiff);
         }
     }
+    result = coordinates ? md.imageToReference<double>(img) : md.imageToReference<uchar>(img);
+    Mat resultPoly = coordinates ? pmd.imageToReference<double>(img) : pmd.imageToReference<uchar>(img);
+    Mat distMat = Mat(img.rows * img.cols, 1, CV_64FC1);
+
+    Mat averageT = average.t();
+    cout << averageT << endl;
+    cout << pmd.polynomialProjection(averageT) << endl;
+    cout << averageT.at<double>(0) * averageT.at<double>(0) << endl;
+    cout << averageT.at<double>(1) * averageT.at<double>(1) << endl;
+    cout << averageT.at<double>(0) * averageT.at<double>(1) << endl;
+    
+    Mat linearized = coordinates ? linearizeImage<double>(img) : linearizeImage<uchar>(img);
+    linearized.convertTo(linearized, CV_64FC1);
+    // cout << pmd.pointsToReference(linearized) << endl;
+
+    Mat icovar = md.c().inv();
+    Mat averageCV = md.reference().t();
+
+    for (int i = 0; i < linearized.rows; i++) {
+        distMat.at<double>(i) = Mahalanobis(linearized.row(i), averageCV, icovar);
+    }
+    resultCV = delinearizeImage<double>(distMat, img.rows, img.cols);
+
+    resultDiff = result - resultCV;
+    // sqrt(resultDiff, resultDiff);
+    // resultDiff = resultDiff.mul(resultDiff);
 
     double min, max;
     cv::minMaxLoc(result, &min, &max);
     std::cout << "min" << min << endl;
     std::cout << "max" << max << endl;
+    result = (result - min) / (max - min);
 
     double minCV, maxCV;
     cv::minMaxLoc(resultCV, &minCV, &maxCV);
     std::cout << "minCV" << minCV << endl;
     std::cout << "maxCV" << maxCV << endl;
+    resultCV = (resultCV - minCV) / (maxCV - minCV);
+
+    double minPoly, maxPoly;
+    cv::minMaxLoc(resultPoly, &minPoly, &maxPoly);
+    std::cout << "minPoly" << minPoly << endl;
+    std::cout << "maxPoly" << maxPoly << endl;
+    resultDiff = (resultPoly - minPoly) / (maxPoly - minPoly);
 
     double minDiff, maxDiff;
     cv::minMaxLoc(resultDiff, &minDiff, &maxDiff);
     std::cout << "minDiff" << minDiff << endl;
     std::cout << "maxDiff" << maxDiff << endl;
+    resultDiff = (resultDiff - minDiff) / (maxDiff - minDiff);
+
+    if (coordinates) {
+        for (int i = 0; i < md.inputMatrix().rows; i++) {
+            circle(resultCV, Point(md.inputMatrix().row(i)), 3, 1, -1);
+            circle(result, Point(md.inputMatrix().row(i)), 3, 1, -1);
+            circle(resultPoly, Point(md.inputMatrix().row(i)), 3, 1, -1);
+            circle(resultDiff, Point(md.inputMatrix().row(i)), 3, 1, -1);
+        }
+        circle(resultCV, Point(md.reference()), 5, 1, -1);
+        circle(result, Point(md.reference()), 5, 1, -1);
+        circle(resultPoly, Point(md.reference()), 5, 1, -1);
+        circle(resultDiff, Point(md.reference()), 5, 1, -1);
+    }
 
     // double alpha = 1/(max-min);
     // double beta = -alpha*min;
@@ -171,17 +137,16 @@ int main(int argc, char** argv)
     // alpha = 255/(max-min);
     // beta = -alpha*min;
 
+    // img = linearizeImage<uchar>(img);
+    // img = delinearizeImage<uchar>(img, size, size);
+
     //imshow("kkk", result_old);
     while (true){
-        // imshow("kkkkkkkkkkk", cc.paintedImage());
-        if (coordinates) {
-            imshow("kkkkkkkkkkk", cc.paintedImage());
-        } else {
-            imshow("kkkkkkkkkkk", pc.paintedImage());
-        }
-        imshow("meuresultado", (result - min) / (max));
-        imshow("cvresultado", (resultCV - minCV) / (maxCV));
-        imshow("diffresultado", (resultDiff - minCV) / (maxCV));
+        imshow("kkkkkkkkkkk", pc.paintedImage());
+        imshow("cvresultado", resultCV);
+        imshow("meuresultado", result);
+        imshow("meuresultadoPoly", resultPoly);
+        // imshow("diffresultado", resultDiff);
         if (waitKey(0) == 27) break;
     }
 
