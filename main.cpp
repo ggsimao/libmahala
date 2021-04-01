@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 {
     const char* filename = argc >= 2 ? argv[1] : "images/coelho.jpg";
 
-    bool coordinates = true;
+    bool coordinates = false;
     Mat mat = Mat();
     Mat result;
     PointCollector pc;
@@ -104,12 +104,14 @@ int main(int argc, char** argv)
     resultDiff = (resultDiff - minDiff) / (maxDiff - minDiff);
 
     if (coordinates) {
-        for (int i = 0; i < md.inputMatrix().rows; i++) {
-            circle(resultCV, Point(md.inputMatrix().row(i)), 3, 1, -1);
-            circle(result, Point(md.inputMatrix().row(i)), 3, 1, -1);
-            circle(resultPoly, Point(md.inputMatrix().row(i)), 3, 1, -1);
-            circle(resultDiff, Point(md.inputMatrix().row(i)), 3, 1, -1);
+        for (int i = 0; i < mat.rows; i++) {
+            circle(img, Point(mat.row(i)), 3, 1, -1);
+            circle(resultCV, Point(mat.row(i)), 3, 1, -1);
+            circle(result, Point(mat.row(i)), 3, 1, -1);
+            circle(resultPoly, Point(mat.row(i)), 3, 1, -1);
+            circle(resultDiff, Point(mat.row(i)), 3, 1, -1);
         }
+        circle(img, Point(md.reference()), 5, 1, -1);
         circle(resultCV, Point(md.reference()), 5, 1, -1);
         circle(result, Point(md.reference()), 5, 1, -1);
         circle(resultPoly, Point(md.reference()), 5, 1, -1);
@@ -142,12 +144,12 @@ int main(int argc, char** argv)
 
     //imshow("kkk", result_old);
     while (true){
-        imshow("kkkkkkkkkkk", pc.paintedImage());
+        imshow("kkkkkkkkkkk", img);
         imshow("cvresultado", resultCV);
         imshow("meuresultado", result);
         imshow("meuresultadoPoly", resultPoly);
         // imshow("diffresultado", resultDiff);
-        if (waitKey(0) == 27) break;
+        if (waitKey(1) == 27) break;
     }
 
     // cout << "min" << min << endl;
