@@ -8,6 +8,13 @@
 using namespace cv;
 using namespace std;
 
+/*! \brief Transforms a C-channel NxM matrix into a single-channel (N*M)xC matrix.
+           This is useful for functions in this library that interpret collections
+           of points as NxD matrices, where N is the number of points and D is the
+           number of dimensions.
+    \param image The matrix to be linearized
+    \return The linearized matrix
+*/
 template <typename T> Mat linearizeImage(Mat& image) {
     int numberOfChannels = image.channels();
 
@@ -30,7 +37,14 @@ template <typename T> Mat linearizeImage(Mat& image) {
     return linearized;
 }
 
+/*! \brief Transforms a single-channel (N*M)xC matrix into a C-channels NxM matrix.
+    \param linearized The matrix to be delinearized
+    \param rows The number of rows the result must have
+    \param cols The number of cols the result must have
+    \return The delinearized matrix
+*/
 template <typename T> Mat delinearizeImage(Mat& linearized, int rows, int cols) {
+    assert(linearized.rows == rows*cols);
     int numberOfChannels = linearized.cols;
 
     Mat result;

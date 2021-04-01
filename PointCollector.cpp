@@ -1,21 +1,21 @@
 #include "PointCollector.hpp"
 
-PointCollector::PointCollector(Mat& input)
-    : _inputImage(input), _showCollectedPoints(true) {
-        _paintedImage = _inputImage.clone();
+PointCollector::PointCollector(Mat& input) {
+        Mat paintedImage = input.clone();
+        bool showCollectedPoints = true;
 
         namedWindow("image");
 
-        bool pressed = false;
+        bool pressedLeft = false;
         bool pressedRight = false;
-        CallbackParams cp = {_inputImage, _paintedImage, _collectedPixels, 
-                             _collectedCoordinates, pressed, pressedRight,
+        CallbackParams cp = {input, paintedImage, _collectedPixels, 
+                             _collectedCoordinates, pressedLeft, pressedRight,
                              _referencePixel, _referenceCoordinate};
 
         setMouseCallback("image", onMouse, (void*)&cp);
 
         while (true) {
-            imshow("image", _showCollectedPoints ? _paintedImage : _inputImage);
+            imshow("image", showCollectedPoints ? paintedImage : input);
 
             char c = (char) waitKey(1);
 
@@ -25,14 +25,14 @@ PointCollector::PointCollector(Mat& input)
 
             switch (c) {
                 case 's':
-                    _showCollectedPoints = !_showCollectedPoints;
+                    showCollectedPoints = !showCollectedPoints;
                     break;
                 case 'r':
                     _collectedPixels.release();
                     _collectedCoordinates.release();
                     _referencePixel.release();
                     _referenceCoordinate.release();
-                    _paintedImage = _inputImage.clone();
+                    paintedImage = input.clone();
                     break;
                 // case 
             }
@@ -41,22 +41,23 @@ PointCollector::PointCollector(Mat& input)
         destroyWindow("image");
     }
 
-PointCollector::PointCollector(const char* path, cv::ImreadModes flags)
-    : _inputImage(imread(path, flags)), _showCollectedPoints(true) {
-        _inputImage.copyTo(_paintedImage);
+PointCollector::PointCollector(const char* path, cv::ImreadModes flags) {
+        Mat inputImage = imread(path, flags);
+        Mat paintedImage = inputImage.clone();
+        bool showCollectedPoints = true;
 
         namedWindow("image");
 
-        bool pressed = false;
+        bool pressedLeft = false;
         bool pressedRight = false;
-        CallbackParams cp = {_inputImage, _paintedImage, _collectedPixels, 
-                             _collectedCoordinates, pressed, pressedRight, 
+        CallbackParams cp = {inputImage, paintedImage, _collectedPixels, 
+                             _collectedCoordinates, pressedLeft, pressedRight, 
                              _referencePixel, _referenceCoordinate};
 
         setMouseCallback("image", onMouse, (void*)&cp);
 
         while (true) {
-            imshow("image", _showCollectedPoints ? _paintedImage : _inputImage);
+            imshow("image", showCollectedPoints ? paintedImage : inputImage);
 
             char c = (char) waitKey(1);
 
@@ -66,14 +67,14 @@ PointCollector::PointCollector(const char* path, cv::ImreadModes flags)
 
             switch (c) {
                 case 's':
-                    _showCollectedPoints = !_showCollectedPoints;
+                    showCollectedPoints = !showCollectedPoints;
                     break;
                 case 'r':
                     _collectedPixels.release();
                     _collectedCoordinates.release();
                     _referencePixel.release();
                     _referenceCoordinate.release();
-                    _paintedImage = _inputImage.clone();
+                    paintedImage = inputImage.clone();
                     break;
                 // case 
             }
@@ -82,19 +83,9 @@ PointCollector::PointCollector(const char* path, cv::ImreadModes flags)
         destroyWindow("image");
     }
 
-PointCollector::PointCollector() {}
-    
 PointCollector::~PointCollector() {}
 
 
-
-Mat& PointCollector::inputImage() {
-    return _inputImage;
-}
-
-Mat& PointCollector::paintedImage() {
-    return _paintedImage;
-}
 
 Mat& PointCollector::collectedPixels() {
     return _collectedPixels;
@@ -109,22 +100,18 @@ Mat& PointCollector::referenceCoordinate() {
     return _referenceCoordinate;
 }
 
-void PointCollector::run() {
-    // namedWindow("image");
-    // setMouseCallback("image", onMouse);
-    // destroyWindow("image");
-}
+
 
 void PointCollector::onMouse(int event, int x, int y, int flags, void* param) {
     CallbackParams* mp = (CallbackParams*) param;
-    bool& pressed = mp->pressed;
+    bool& pressedLeft = mp->pressedLeft;
     bool& pressedRight = mp->pressedRight;
-    // cout << "kkk" << endl;
-    if (event == EVENT_LBUTTONDOWN) pressed = true;
-    if (event == EVENT_LBUTTONUP) pressed = false;
+
+    if (event == EVENT_LBUTTONDOWN) pressedLeft = true;
+    if (event == EVENT_LBUTTONUP) pressedLeft = false;
     if (event == EVENT_RBUTTONDOWN) pressedRight = true;
     if (event == EVENT_RBUTTONUP) pressedRight = false;
-    if (pressed || pressedRight) {
+    if (pressedLeft || pressedRight) {
         int chans = mp->img.channels();
 
         Mat bgr = Mat(1, chans, CV_64FC1);    

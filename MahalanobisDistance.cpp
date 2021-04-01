@@ -1,16 +1,15 @@
 #include "MahalanobisDistance.hpp"
 
 MahalaDist::MahalaDist(const Mat& input, double smin, Mat reference)
-    : _inputMatrix(input), _smin(smin), _reference(reference)
+    : _smin(smin), _reference(reference)
 {
-    assert(_inputMatrix.data);
-    assert(_inputMatrix.type() == CV_64FC1);
+    assert(input.data);
+    assert(input.type() == CV_64FC1);
 
     _u = 0;
     _w = 0;
     _sigma2 = 0;
 
-    _k = 0;
     _dimension = input.cols;
     _numberOfPoints = input.rows;
 
@@ -19,15 +18,15 @@ MahalaDist::MahalaDist(const Mat& input, double smin, Mat reference)
         _reference = Mat::zeros(_dimension, 1, CV_64FC1);
 
         for (int i = 0; i < _dimension; i++) {
-            _reference.at<double>(i) += (mean(_inputMatrix.col(i)))[0];
+            _reference.at<double>(i) += (mean(input.col(i)))[0];
         }
     }
 
-    _a = Mat(_inputMatrix.size(), _inputMatrix.type());
+    Mat a = Mat(input.size(), input.type());
 
     Mat refT = _reference.t();
     for (int i = 0; i < _numberOfPoints; i++) {
-        _a.row(i) = _inputMatrix.row(i) - refT;
+        a.row(i) = input.row(i) - refT;
     }
 
     /*
@@ -37,26 +36,23 @@ MahalaDist::MahalaDist(const Mat& input, double smin, Mat reference)
      */
 
     // if (_dimension < _numberOfPoints) {
-        _c = (_a.t() * _a);
+        _c = (a.t() * a);
     // } else {
     //     _c = (_a * _a.t());
     // }
     // SVD::compute(_c, _w, _u, discard);
     Mat discard;
     SVD::compute(_c, _w, discard, _u);
-    discard.release();
+    // discard.release();
     
     // _c is not directly used but it's still in the code for completeness' sake
     _c /= (_numberOfPoints - 1);
 
-    cout << "kkk" << endl;
-    _cInv = _c.inv();
-    cout << "kkk" << endl << endl;
+    // _cInv = _c.inv();
 
     _dirty = 1;
-    _setReference = 1;
-    assert(_inputMatrix.data);
-    assert(_inputMatrix.type() == CV_64FC1);
+    assert(input.data);
+    assert(input.type() == CV_64FC1);
 }
 
 MahalaDist::MahalaDist() {}
@@ -65,9 +61,9 @@ MahalaDist::~MahalaDist() {}
 
 /*------------------------------*/
 
-Mat MahalaDist::inputMatrix() {
-    return _inputMatrix;
-}
+// Mat MahalaDist::inputMatrix() {
+//     return _inputMatrix;
+// }
 
 Mat MahalaDist::reference() {
     return _reference;
@@ -81,9 +77,9 @@ int MahalaDist::dimension() {
     return _dimension;
 }
 
-int MahalaDist::numberOfPoints() {
-    return _numberOfPoints;
-}
+// int MahalaDist::numberOfPoints() {
+//     return _numberOfPoints;
+// }
 
 bool MahalaDist::dirty() {
     return _dirty;
@@ -95,9 +91,9 @@ const Mat MahalaDist::u() const {
     return _u;
 }
 
-const Mat MahalaDist::uK() const {
-    return _uK;
-}
+// const Mat MahalaDist::uK() const {
+//     return _uK;
+// }
 
 Mat MahalaDist::w() {
     return _w;
@@ -107,15 +103,15 @@ Mat MahalaDist::c() {
     return _c;
 }
 
-double MahalaDist::w(int k) {
-    return _w.at<double>(k);
-}
+// double MahalaDist::w(int k) {
+//     return _w.at<double>(k);
+// }
 
-double MahalaDist::wSigma2(int k) {
-    assert(!_dirty);
+// double MahalaDist::wSigma2(int k) {
+//     assert(!_dirty);
 
-    return _wSigma2.at<double>(k);
-}
+//     return _wSigma2.at<double>(k);
+// }
 
 
 // double MahalaDist::c(int k) {
@@ -144,17 +140,16 @@ void MahalaDist::build() {
 
     /*
      * Old way of doing Mat wSigma2 = _w + _sigma2;
-     * It's now only used for calculating _k and can be removed.
      */
-    for(int k = 0; k < _w.rows; k++) {
-        if (_w.at<double>(k) >= _sigma2) {
-            // _w.at<double>(k) += _sigma2;
-            _k++;
-        }
-        else{
-            // _w.at<double>(k) = 0;
-        }
-    }
+    // for(int k = 0; k < _w.rows; k++) {
+    //     if (_w.at<double>(k) >= _sigma2) {
+    //         // _w.at<double>(k) += _sigma2;
+    //         _k++;
+    //     }
+    //     else{
+    //         // _w.at<double>(k) = 0;
+    //     }
+    // }
 
     /*
      * The following if sections were supposed to make calculations more
@@ -162,7 +157,7 @@ void MahalaDist::build() {
      * work with the used formula
      */
     // if (_dimension < _numberOfPoints) {
-        _uK = Mat(_u, Rect(0,0, _k, _u.rows)).clone();
+        // _uK = Mat(_u, Rect(0,0, _k, _u.rows)).clone();
     // } else {
     //     Mat b = (_u.t() * _a).t();
     //     for (int k = 0; k < _k; k++) {
@@ -172,9 +167,9 @@ void MahalaDist::build() {
     //     // _u = b.t();
     // }
 
-    _wSigma2 = Mat::diag(_w + _sigma2);
+    Mat wSigma2 = Mat::diag(_w + _sigma2);
 
-    _cSigma2Inv = (_u.t() * _wSigma2.inv() * _u) * (_numberOfPoints-1);
+    _cSigma2Inv = (_u.t() * wSigma2.inv() * _u) * (_numberOfPoints-1);
     
     // if (_dimension < _numberOfPoints) {
         // assert(_k <= _dimension);
@@ -191,35 +186,20 @@ void MahalaDist::build() {
 /*------------------------------*/
 
 double MahalaDist::pointTo(Mat& point1, Mat& point2) {
-    assert(!_dirty);
-    assert(point1.cols == point2.cols && point1.cols == 1);
-    assert(point1.rows == point2.rows && point1.rows == _dimension);
-
-    Mat diff = point1-point2;
-    Mat diffSq = diff.mul(diff);
-    double diffSquareSum = cv::sum(diffSq)[0];
-    double ksum = 0;
-
-    Mat proj;
-    Mat projSq;
-    for (int k = 0; k < _k; k++) {
-        proj = _uK.col(k).t() * diff;
-        projSq = proj.mul(proj);
-        double squareSum = cv::sum(projSq)[0];
-        ksum += (-w(k) * squareSum) / (_sigma2 * (w(k) + _sigma2));
-    }
-
-    double distance = (diffSquareSum/_sigma2) + ksum;
-    distance = sqrt(distance*(_numberOfPoints-1));
-
-    return (distance < 0) ? 0 : distance;
+    // assert(!_dirty);
+    assert(point1.rows == _dimension && point2.rows == _dimension);
+    assert(point1.cols == 1 && point2.cols == 1);
+    assert(point1.type() == CV_64FC1 && point2.type() == CV_64FC1);
+    Mat point1T = point1.t();
+    return pointsTo(point1T, point2).at<double>(0);
 }
 
 double MahalaDist::pointToReference(Mat& point) {
     assert(point.rows == _dimension);
     assert(point.cols == 1);
     assert(point.type() == CV_64FC1);
-    return pointTo(point, _reference);
+    Mat pointT = point.t();
+    return pointsTo(pointT, _reference).at<double>(0);
 }
 
 Mat MahalaDist::pointsTo(Mat& points, Mat& ref) {
