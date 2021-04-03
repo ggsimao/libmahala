@@ -10,8 +10,6 @@
 using namespace cv;
 using namespace std;
 
-// TODO: Assign keys for changing the color of the collected points highlight
-
 /*! \brief Creates an interactible window where the user can collect points from an image.
            While the window is active, the 'R' key resets all attributes, the 'S' toggles
            the collected points highlight, the 'Esc' key closes the window and ends the

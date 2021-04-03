@@ -3,6 +3,7 @@
 #include "BhattacharyyaDistance.hpp"
 #include "PointCollector.hpp"
 #include "imageUtils.cpp"
+// #include "mahalaLibWrapper.cpp"
 
 using namespace cv;
 using namespace std;

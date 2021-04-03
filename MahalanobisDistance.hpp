@@ -59,6 +59,7 @@ public:
     // const Mat uK() const;
     Mat w();
     Mat c();
+    Mat cSigma2Inv();
     // double w(int k);
     // double wSigma2(int k);
     // double c(int k);

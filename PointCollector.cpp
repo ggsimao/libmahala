@@ -252,7 +252,7 @@ Mat& PointCollector::referenceCoordinate() {
 
 
 void PointCollector::redraw(const Mat& originalImage, Mat& imageToPaint, const Mat& points, const Mat& reference, const Scalar& color) {
-    cout << color << endl;
+    // cout << color << endl;
     imageToPaint = originalImage.clone();
     if (reference.data) {
         circle(imageToPaint, Point(reference.at<double>(0),reference.at<double>(1)), 5, color, -1);

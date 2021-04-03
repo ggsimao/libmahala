@@ -103,6 +103,10 @@ Mat MahalaDist::c() {
     return _c;
 }
 
+Mat MahalaDist::cSigma2Inv() {
+    return _cSigma2Inv;
+}
+
 // double MahalaDist::w(int k) {
 //     return _w.at<double>(k);
 // }
