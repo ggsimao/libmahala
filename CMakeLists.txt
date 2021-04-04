@@ -7,12 +7,14 @@ project(TCCLibrary CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_SHARED_MODULE_PREFIX "")
 
-find_package(PythonLibs REQUIRED)
-find_package(Boost COMPONENTS python REQUIRED)
+# find_package(PythonLibs REQUIRED)
+# find_package(Boost COMPONENTS python REQUIRED)
+# find_package(pybind11 CONFIG)
 find_package( OpenCV REQUIRED )
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${PythonLibs_INCLUDE_DIRS})
-include_directories(${PYTHON_INCLUDE_DIRS})
+add_subdirectory(extern/pybind11)
+# include_directories(${Boost_INCLUDE_DIRS})
+# include_directories(${PythonLibs_INCLUDE_DIRS})
+# include_directories(${PYTHON_INCLUDE_DIRS})
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 # SET(ENV{BOOST_ROOT} "/usr/include/boost_1_62_0")
@@ -24,12 +26,17 @@ add_executable( main main.cpp
                      MahalanobisDistance.cpp
                      BhattacharyyaDistance.cpp
                      imageUtils.cpp)
-add_library(mahala SHARED MahalanobisDistance.cpp
-                          PointCollector.cpp
-                          imageUtils.cpp)
+pybind11_add_module(mahala SHARED
+                        MahalanobisDistance.cpp
+                        PointCollector.cpp
+                        imageUtils.cpp
+                        mahalaLibWrapper.cpp)
+# add_library(mahala SHARED MahalanobisDistance.cpp
+#                           PointCollector.cpp
+#                           imageUtils.cpp)
 
-target_include_directories(mahala PRIVATE ${PYTHON_INCLUDE_DIRS})
-target_link_libraries(mahala ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${OpenCV_LIBS} ${PythonLibs_LIBRARIES})
-target_link_options(mahala PRIVATE -lboost_python -lboost_numpy -lopencv_core -lgio-2.0 -lgobject-2.0 -lglib-2.0)
+# target_include_directories(mahala PRIVATE ${PYTHON_INCLUDE_DIRS})
+# target_link_libraries(mahala ${OpenCV_LIBS})
+# target_link_options(mahala PRIVATE)
 # set_target_properties(mahala PROPERTIES VERSION 0.0.1)
 target_link_libraries( main ${OpenCV_LIBS} )
