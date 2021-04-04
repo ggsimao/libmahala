@@ -20,6 +20,10 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 # SET(ENV{BOOST_ROOT} "/usr/include/boost_1_62_0")
 # SET(ENV{PYTHONPATH} "/usr/include/python2.7")
 
+execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print(numpy.get_include())" OUTPUT_VARIABLE NUMPY_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
+message(STATUS "NUMPY_INCLUDE: " ${NUMPY_INCLUDE})
+include_directories(${NUMPY_INCLUDE})
+
 add_executable( main main.cpp
                      PointCollector.cpp
                      PolynomialMahalanobisDistance.cpp
@@ -30,7 +34,8 @@ pybind11_add_module(mahala SHARED
                         MahalanobisDistance.cpp
                         PointCollector.cpp
                         imageUtils.cpp
-                        mahalaLibWrapper.cpp)
+                        mahalaLibWrapper.cpp
+                        ndarray_converter.cpp)
 # add_library(mahala SHARED MahalanobisDistance.cpp
 #                           PointCollector.cpp
 #                           imageUtils.cpp)
