@@ -38,9 +38,9 @@ public:
     /*! \brief Constructor that shows and maintains the interactible window
         \param path The path to the fila that contains the image that will be shown
                     and that the user will gather samples from
-        \param flags The flags that OpenCV will use to open the file
+        \param flags The cv::ImreadModes flags that OpenCV will use to open the file
     */
-    PointCollector(const char* path, cv::ImreadModes flags);
+    PointCollector(const char* path, int flags);
     /*! \brief Default constructor for declaring before initializing
     */
     PointCollector();

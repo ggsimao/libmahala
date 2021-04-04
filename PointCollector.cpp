@@ -115,8 +115,9 @@ PointCollector::PointCollector(Mat& input) {
     cv::destroyWindow("image");
 }
 
-PointCollector::PointCollector(const char* path, cv::ImreadModes flags) {
-    Mat inputImage = imread(path, flags);
+PointCollector::PointCollector(const char* path, int flags) {
+    cv::ImreadModes cvFlags = (cv::ImreadModes) flags;
+    Mat inputImage = imread(path, cvFlags);
     Mat paintedImage = inputImage.clone();
     bool showCollectedPoints = true;
 

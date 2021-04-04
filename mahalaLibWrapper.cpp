@@ -68,7 +68,7 @@ PYBIND11_MODULE(libmahala, m) {
     py::class_<PointCollector>(m, "PointCollector")
         .def(py::init<cv::Mat&>(),
             py::arg("input"))
-        .def(py::init<const char*, cv::ImreadModes>(),
+        .def(py::init<const char*, int>(),
             py::arg("path"), py::arg("flags"))
         .def_property_readonly("collectedPixels", &PointCollector::collectedPixels)
         .def_property_readonly("collectedCoordinates", &PointCollector::collectedCoordinates)
