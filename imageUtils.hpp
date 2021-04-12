@@ -16,6 +16,7 @@ using namespace std;
     \return The linearized matrix
 */
 template <typename T> Mat linearizeImage(Mat& image) {
+    cout << "linearizing " << image.rows << "x" << image.cols << " into " << image.rows * image.cols << endl;
     int numberOfChannels = image.channels();
 
     Mat linearized = Mat(numberOfChannels, image.rows * image.cols, image.type() % 8);
@@ -44,6 +45,7 @@ template <typename T> Mat linearizeImage(Mat& image) {
     \return The delinearized matrix
 */
 template <typename T> Mat delinearizeImage(Mat& linearized, int rows, int cols) {
+    cout << "delinearizing " << linearized.rows * linearized.cols << " into " << rows << "x" << cols << endl;
     assert(linearized.rows == rows*cols);
     int numberOfChannels = linearized.cols;
 

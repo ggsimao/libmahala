@@ -2,7 +2,7 @@
 
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "imageUtils.cpp"
+#include "imageUtils.hpp"
 
 #include <iostream>
 #include <vector>
@@ -13,36 +13,47 @@ using namespace std;
 
 class BhattaDist {
 public:
-    /*
-     * input: distribuição que será usada para construir a métrica
-     *        as colunas representam as dimensões dos vetores, as linhas representam cada vetor individualmente
-     */
-    BhattaDist(const Mat& input);
+    /*! \brief Constructor
+        \param input The point neighborhood used to build the metric
+        \param smin Will be the _smin class member
+    */
+    BhattaDist(const Mat& input, double smin);
     BhattaDist();
     virtual ~BhattaDist();
 
-    /* Retorna a dimensão dos vetores usados para construir a métrica */
-    int dimension();
-    // int numberOfPoints();
-    /* Aplica o cálculo da distância entre distribuição usada para construir a métrica e uma distribuição */
-    double pointsTo(Mat& points);
-    /* Aplica o cálculo da distância entre distribuição usada para construir a métrica e uma usada para outra métrica */
-    double metricTo(BhattaDist& dist);
-    template <typename T> double imageTo(Mat& image);
-
-    /* Retorna a média da distribuição usada para construir a métrica */
+    // getters (need to be updated)
+    // Mat inputMatrix();
     Mat mi();
-    /* Retorna a matriz de covariância da distribuição usada para construir a métrica */
-    Mat sigma();
+    double smin();
+    int dimension();
+    bool dirty();
+    Mat c();
+    const Mat u() const;
+    Mat w();
+    Mat cSigma2Inv();
+    double sigma2();
 
-    double smin(double smin);
+    // setter
+    void smin(double smin);
+
+    /*! \brief Builds the parameters that are used on the calculation
+               of the distances and are based on the _smin class member
+    */
     void build();
 
+    double pointsTo(Mat& points);
+    double metricTo(BhattaDist& metric);
+    template <typename T> double imageTo(Mat& image);
+
 private:
-    Mat _inputMatrix;
+    Mat _c;
+    Mat _u;
+    Mat _w;
     Mat _mi;
-    Mat _sigma;
+    Mat _cSigma2Inv;
+    bool _dirty;
+    double _smin;
+    double _sigma2;
     int _dimension;
     int _numberOfPoints;
-    bool _dirty;
 };

@@ -1,7 +1,8 @@
 #include <Python.h>
 #include "pybind11/pybind11.h"
 #include "MahalanobisDistance.hpp"
-#include "imageUtils.cpp"
+#include "imageUtils.hpp"
+#include "mathUtils.hpp"
 #include "PointCollector.hpp"
 
 #include "ndarray_converter.h"

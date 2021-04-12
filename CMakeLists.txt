@@ -3,6 +3,13 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name
 project(TCCLibrary CXX)
 
+# set(CMAKE_CROSSCOMPILING true)
+# set(CMAKE_SYSTEM_NAME Windows)
+# set(CMAKE_SYSTEM_VERSION 10.0)
+# set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
+
+# set(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}-gcc)
+# set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_SHARED_MODULE_PREFIX "")
@@ -10,7 +17,7 @@ set(CMAKE_SHARED_MODULE_PREFIX "")
 # find_package(PythonLibs REQUIRED)
 # find_package(Boost COMPONENTS python REQUIRED)
 find_package(pybind11 CONFIG)
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4.0.0 REQUIRED)
 find_package(Python COMPONENTS NumPy REQUIRED)
 add_subdirectory(extern/pybind11)
 
@@ -19,11 +26,12 @@ add_executable(main main.cpp
                     PolynomialMahalanobisDistance.cpp
                     MahalanobisDistance.cpp
                     BhattacharyyaDistance.cpp
-                    imageUtils.cpp)
+                    imageUtils.hpp
+                    mathUtils.cpp)
 pybind11_add_module(libmahala SHARED
                         MahalanobisDistance.cpp
                         PointCollector.cpp
-                        imageUtils.cpp
+                        imageUtils.hpp
                         mahalaLibWrapper.cpp
                         ndarray_converter.cpp)
 # add_library(mahala SHARED MahalanobisDistance.cpp

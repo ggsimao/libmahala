@@ -3,11 +3,13 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "MahalanobisDistance.hpp"
-#include "imageUtils.cpp"
+#include "imageUtils.hpp"
+#include "mathUtils.hpp"
 
 #include <iostream>
 #include <vector>
 #include <math.h>
+// #include <omp.h>
 
 using namespace cv;
 using namespace std;
@@ -49,97 +51,97 @@ public:
         \param l will be the _l class member
         \param reference will be the _reference class member (which will be the mean of _inputMatrix if empty)
     */
-    PolyMahalaDist(Mat input, double smin, int l, Mat reference = Mat());
+    PolyMahalaDist(Mat input, int l, double sig_max = 4e-6, Mat reference = Mat());
     PolyMahalaDist();
     virtual ~PolyMahalaDist();
 
     // getters (need to be updated)
-    Mat inputMatrix();
-    Mat reference();
-    double smin();
-    // int dimension();
-    // int numberOfPoints();
-    int l();
+    // Mat inputMatrix();
+    // Mat reference();
+    // double smin();
+    // // int dimension();
+    // // int numberOfPoints();
+    // int l();
 
-    // setters
-    void smin(double smin);
-    void l(int l);
+    // // setters
+    // void smin(double smin);
+    // void l(int l);
 
-    /*! \brief Projects a collection of vectors into its second-order polynomial space
-        \param vec Collection of vectors to be projected
-        \return result of projecting each of vec's rows into its second-order polynomial space 
-    */
-    Mat polynomialProjection(Mat vec);
-    /*! \brief Select the non-null dimensions of a collection of vectors by comparing their
-               variances to the _smin class member
-        \param vec Collection of vectors to be analyzed
-        \return The indexes of the non-null dimensions of vec
-    */
-    vector<int> filterByVariance(Mat vec);
-    /*! \brief written by PC
-    */
-    Mat filterByVariancePC(const Mat &data, std::vector<int>& outIndes);
-    /*! \brief Multiplies two collections of vectors and then filter out undesired dimensions
-        \param slaveVec The first matrix of the multiplication.
-        \param masterVec The second matrix of the multiplication.
-        \param indexes The desired indexes of the desired features of the result of the multiplication.
-        \return The matrix resultant from the multiplication.
-    */
-    Mat filteringMultiplication(Mat slaveVec, Mat masterVec, vector<int> indexes);
-    /*! \brief written by PC
-    */
-    Mat removeNullDimensions(Mat& data, vector<int>& validDimesions);
+    // /*! \brief Projects a collection of vectors into its second-order polynomial space
+    //     \param vec Collection of vectors to be projected
+    //     \return result of projecting each of vec's rows into its second-order polynomial space 
+    // */
+    // Mat polynomialProjection(Mat vec);
+    // /*! \brief Select the non-null dimensions of a collection of vectors by comparing their
+    //            variances to the _smin class member
+    //     \param vec Collection of vectors to be analyzed
+    //     \return The indexes of the non-null dimensions of vec
+    // */
+    // vector<int> filterByVariance(Mat vec);
+    // /*! \brief written by PC
+    // */
+    // Mat filterByVariancePC(const Mat &data, std::vector<int>& outIndes);
+    // /*! \brief Multiplies two collections of vectors and then filter out undesired dimensions
+    //     \param slaveVec The first matrix of the multiplication.
+    //     \param masterVec The second matrix of the multiplication.
+    //     \param indexes The desired indexes of the desired features of the result of the multiplication.
+    //     \return The matrix resultant from the multiplication.
+    // */
+    // Mat filteringMultiplication(Mat slaveVec, Mat masterVec, vector<int> indexes);
+    // /*! \brief written by PC
+    // */
+    // Mat removeNullDimensions(Mat& data, vector<int>& validDimesions);
 
-    /*! \brief builds the parameters that are used on the calculation
-               of the distances and are based on the _smin and _l class members
-    */
-    void build();
-    /*! \brief builds the parameters that are used on the calculation
-               of the distances and are based on the _smin and _l
-               class members (written by PC)
-    */
-    void buildPC();
+    // /*! \brief builds the parameters that are used on the calculation
+    //            of the distances and are based on the _smin and _l class members
+    // */
+    // void build();
+    // /*! \brief builds the parameters that are used on the calculation
+    //            of the distances and are based on the _smin and _l
+    //            class members (written by PC)
+    // */
+    // void buildPC();
 
-    /*
-     * The following three methods are not currently being worked on
-     * and they might not have any reason to continue to exist, since
-     * they are a simple particular case of the three methods that come after
-     */
-    double pointTo(Mat point1, Mat point2);
-    double pointToReference(Mat point);
-    double pointToReferencePC(Mat point);
-    /*! \brief calculates the polynomial Mahalanobis distance between
-               ref and each vector in points
-        \param points a collection of vectors
-        \param ref a single vector
-        \return a N x 1 matrix containing the calculated distances
-                where N is the number of vectors in points
-    */
-    Mat pointsTo(Mat points, Mat point);
-    /*! \brief calculates the polynomial Mahalanobis distance between
-               the _reference class member and each vector in points
-        \param points a collection of vectors
-        \return a N x 1 matrix containing the calculated distances
-                where N is the number of vectors in points
-    */
-    Mat pointsToReference(Mat points);
-    /*! \brief calculates the polynomial Mahalanobis distance between
-               the _reference class member and each vector in points
-               (written by PC)
-        \param points a collection of vectors
-        \return a N x 1 matrix containing the calculated distances
-                where N is the number of vectors in points
-    */
-    Mat pointsToReferencePC(Mat points);
-    /*! \brief transforms an image into a collection of vectors
-               and calculates the polynomial Mahalanobis distance
-               between each of the vectors and ref
-        \param image an image
-        \param ref a single vector
-        \return an image where each pixel is the distance between the equivalent
-                pixel in the image argument and ref (might need transformations
-                before being properly visualized)
-    */
+    // /*
+    //  * The following three methods are not currently being worked on
+    //  * and they might not have any reason to continue to exist, since
+    //  * they are a simple particular case of the three methods that come after
+    //  */
+    // double pointTo(Mat point1, Mat point2);
+    // double pointToReference(Mat point);
+    // double pointToReferencePC(Mat point);
+    // /*! \brief calculates the polynomial Mahalanobis distance between
+    //            ref and each vector in points
+    //     \param points a collection of vectors
+    //     \param ref a single vector
+    //     \return a N x 1 matrix containing the calculated distances
+    //             where N is the number of vectors in points
+    // */
+    // Mat pointsTo(Mat points, Mat point);
+    // /*! \brief calculates the polynomial Mahalanobis distance between
+    //            the _reference class member and each vector in points
+    //     \param points a collection of vectors
+    //     \return a N x 1 matrix containing the calculated distances
+    //             where N is the number of vectors in points
+    // */
+    // Mat pointsToReference(Mat points);
+    // /*! \brief calculates the polynomial Mahalanobis distance between
+    //            the _reference class member and each vector in points
+    //            (written by PC)
+    //     \param points a collection of vectors
+    //     \return a N x 1 matrix containing the calculated distances
+    //             where N is the number of vectors in points
+    // */
+    // Mat pointsToReferencePC(Mat points);
+    // /*! \brief transforms an image into a collection of vectors
+    //            and calculates the polynomial Mahalanobis distance
+    //            between each of the vectors and ref
+    //     \param image an image
+    //     \param ref a single vector
+    //     \return an image where each pixel is the distance between the equivalent
+    //             pixel in the image argument and ref (might need transformations
+    //             before being properly visualized)
+    // */
     template <typename T> Mat imageTo(Mat& image, Mat& ref);
     /*! \brief transforms an image into a collection of vectors
                and calculates the polynomial Mahalanobis distance between
@@ -150,11 +152,15 @@ public:
                 before being properly visualized)
     */
     template <typename T> Mat imageToReference(Mat& image);
+
+    Mat evaluateToVector(Mat im_data, Mat refVector);
+    Mat evaluateToCenter(Mat im_data);
 private:
     Mat _inputMatrix;
     Mat _reference;
     double _smin;
     int _l;
+    int _max_level;
     int _dimension;
     int _numberOfPoints;
     int _polynomialDimension;
@@ -166,5 +172,20 @@ private:
     MahalaDist _baseDist;
     bool _dirty;
     bool _setReference;
+
+    struct lev_basis {
+        Mat A_basis;
+        double max_aP;
+        int ind_usesize;
+        vector<int> ind_use;
+
+        int d_proj;
+        int dmssize;
+        vector<double> dms;
+        
+        double sigma_inv;
+    };
+
+    vector<lev_basis> basisVec;
 };
 

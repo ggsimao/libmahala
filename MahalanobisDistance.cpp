@@ -36,17 +36,17 @@ MahalaDist::MahalaDist(const Mat& input, double smin, Mat reference)
      */
 
     // if (_dimension < _numberOfPoints) {
-        _c = (a.t() * a);
+        Mat aTa = (a.t() * a);
     // } else {
     //     _c = (_a * _a.t());
     // }
     // SVD::compute(_c, _w, _u, discard);
     Mat discard;
-    SVD::compute(_c, _w, discard, _u);
+    SVD::compute(aTa, _w, discard, _u);
     // discard.release();
     
     // _c is not directly used but it's still in the code for completeness' sake
-    _c /= (_numberOfPoints - 1);
+    _c = aTa / (_numberOfPoints - 1);
 
     // _cInv = _c.inv();
 

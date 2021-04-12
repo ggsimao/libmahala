@@ -2,7 +2,7 @@
 
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "imageUtils.cpp"
+#include "imageUtils.hpp"
 
 #include <iostream>
 #include <vector>
