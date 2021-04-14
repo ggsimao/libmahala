@@ -4,6 +4,7 @@ MahalaDist::MahalaDist(const Mat& input, double smin, Mat reference)
     : _smin(smin), _reference(reference)
 {
     assert(input.data);
+    assert(input.rows > 1);
     assert(input.type() == CV_64FC1);
 
     _u = 0;
@@ -15,10 +16,10 @@ MahalaDist::MahalaDist(const Mat& input, double smin, Mat reference)
 
 
     if(!_reference.data){
-        _reference = Mat::zeros(_dimension, 1, CV_64FC1);
+        _reference = Mat(_dimension, 1, CV_64FC1);
 
         for (int i = 0; i < _dimension; i++) {
-            _reference.at<double>(i) += (mean(input.col(i)))[0];
+            _reference.at<double>(i) = (mean(input.col(i)))[0];
         }
     }
 
@@ -40,7 +41,6 @@ MahalaDist::MahalaDist(const Mat& input, double smin, Mat reference)
     // } else {
     //     _c = (_a * _a.t());
     // }
-    // SVD::compute(_c, _w, _u, discard);
     Mat discard;
     SVD::compute(aTa, _w, discard, _u);
     // discard.release();
@@ -61,10 +61,6 @@ MahalaDist::~MahalaDist() {}
 
 /*------------------------------*/
 
-// Mat MahalaDist::inputMatrix() {
-//     return _inputMatrix;
-// }
-
 Mat MahalaDist::reference() {
     return _reference;
 }
@@ -77,10 +73,6 @@ int MahalaDist::dimension() {
     return _dimension;
 }
 
-// int MahalaDist::numberOfPoints() {
-//     return _numberOfPoints;
-// }
-
 bool MahalaDist::dirty() {
     return _dirty;
 }
@@ -90,10 +82,6 @@ bool MahalaDist::dirty() {
 const Mat MahalaDist::u() const {
     return _u;
 }
-
-// const Mat MahalaDist::uK() const {
-//     return _uK;
-// }
 
 Mat MahalaDist::w() {
     return _w;
@@ -106,21 +94,6 @@ Mat MahalaDist::c() {
 Mat MahalaDist::cSigma2Inv() {
     return _cSigma2Inv;
 }
-
-// double MahalaDist::w(int k) {
-//     return _w.at<double>(k);
-// }
-
-// double MahalaDist::wSigma2(int k) {
-//     assert(!_dirty);
-
-//     return _wSigma2.at<double>(k);
-// }
-
-
-// double MahalaDist::c(int k) {
-//     return _c.at<double>(k,k);
-// }
 
 double MahalaDist::sigma2() {
     assert(!_dirty);
@@ -190,7 +163,7 @@ void MahalaDist::build() {
 /*------------------------------*/
 
 double MahalaDist::pointTo(Mat& point1, Mat& point2) {
-    // assert(!_dirty);
+    assert(!_dirty);
     assert(point1.rows == _dimension && point2.rows == _dimension);
     assert(point1.cols == 1 && point2.cols == 1);
     assert(point1.type() == CV_64FC1 && point2.type() == CV_64FC1);
@@ -217,7 +190,7 @@ Mat MahalaDist::pointsTo(Mat& points, Mat& ref) {
 
     Mat diff = Mat(points.size(), CV_64FC1);
     Mat refT = ref.t();
-    // Mat rowDiffTemp;//matriz temporaria pra guardas a diferença de cada linha.
+    // Mat rowDiffTemp; //matriz temporaria pra guardas a diferença de cada linha.
     for(int i = 0; i < points.rows; i++){
         // rowDiffTemp = (points.row(i)-refT);
         // rowDiffTemp.copyTo(diff.row(i));

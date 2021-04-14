@@ -14,165 +14,101 @@
 using namespace cv;
 using namespace std;
 
-/*! \brief A class that holds the parameters required to calculate the polynomial
-           Mahalanobis distance between two vectors and can perform the calculation. 
-           It follows the convention of single vectors being stored as a D x 1 matrix
-           while collections of vectors (even if they might be unitary) being stored
-           as a N x D matrix, with D being the number of features and N being the
-           number of samples
-    \param _inputMatrix Vector neighborhood used to build the metric
-    \param _reference Reference vector (usually the mean of the vector neighborhood)
-    \param _smin User-set parameter used to guarantee that _c of the used MahalaDist objects
-                 are inversible inversible but also slightly changes the result (can also be
-                 used to make the calculation more efficient in a formula that is currently
-                 not being used)
-    \param _l log_2 of the order of the polynomial terms
-    \param _dimension Number of dimensions of the vector neighborhood
-    \param _numberOfPoints Number of vectors in the vector neighborhood (not necessarily
-                           including the reference)
-    \param _polynomialDimension Final number of dimensions after the polynomial expansions
-    \param _expandedReferences References for each element in _expandedDists
-    \param _expandedUs _u matrices for each element in _expandedDists
-    \param _expandedDists MahalaDist objects with their neighborhoods and references expanded
-                          polynomially (one object for each 0 <= l < _l)
-    \param _indexesVector Indexes of the non-null dimensions of each element in _expandedDists
-    \param _maxAbsVector
-    \param _baseDist MahalaDist object of vectors in the 0-order polynomial expansion
-    \param _dirty True if the build() method needs to be called before calculating a distance
-    \param _setReference True if the reference vector was set by the user when instanciating the object
+/*! \brief Classe que contém os parâmetros necessários para calcular a distância de
+           Mahalanobis polinomial entre pontos e realiza o cálculo
+    \param reference Centro da métrica (média da vizinhança de pontos, por padrão) (somente leitura)
+    \param eps_svd Parâmetro do usuário, usado para garantir a inversão da matriz de
+                   covariância da vizinhança de pontos C, alterando o resultado
+                   proporcionalmente ao seu valor (leitura e escrita)
+    \param order Ordem dos termos polinomiais (somente leitura)
+    \param dimension Número inicial de dimensões da vizinhança de pontos (somente leitura)
 */
 class PolyMahalaDist {
 public:
 
 
-    /*! \brief Constructor
-        \param input will be the _inputMatrix class member
-        \param smin will be the _smin class member
-        \param l will be the _l class member
-        \param reference will be the _reference class member (which will be the mean of _inputMatrix if empty)
+    /*! \brief Construtor
+        \param input Matriz da vizinhança de pontos, em que cada linha é um ponto
+                     e cada coluna uma dimensão
+        \param order Ordem dos termos polinomiais
+        \param smin Parâmetro do usuário, usado para garantir a inversão da matriz de
+                    covariância da vizinhança de pontos C, alterando o resultado
+                    proporcionalmente ao seu valor
+        \param reference Centro da métrica (média da vizinhança de pontos, por padrão)
+                         na forma de uma matriz coluna
     */
-    PolyMahalaDist(Mat input, int l, double sig_max = 4e-6, Mat reference = Mat());
+    PolyMahalaDist(const Mat& input, int order, double sig_max = 4e-6, Mat reference = Mat());
     PolyMahalaDist();
     virtual ~PolyMahalaDist();
 
-    // getters (need to be updated)
-    // Mat inputMatrix();
-    // Mat reference();
-    // double smin();
-    // // int dimension();
-    // // int numberOfPoints();
-    // int l();
+    // getters
+    Mat reference();
+    double eps_svd();
+    int dimension();
+    int order();
 
     // // setters
-    // void smin(double smin);
-    // void l(int l);
-
-    // /*! \brief Projects a collection of vectors into its second-order polynomial space
-    //     \param vec Collection of vectors to be projected
-    //     \return result of projecting each of vec's rows into its second-order polynomial space 
-    // */
-    // Mat polynomialProjection(Mat vec);
-    // /*! \brief Select the non-null dimensions of a collection of vectors by comparing their
-    //            variances to the _smin class member
-    //     \param vec Collection of vectors to be analyzed
-    //     \return The indexes of the non-null dimensions of vec
-    // */
-    // vector<int> filterByVariance(Mat vec);
-    // /*! \brief written by PC
-    // */
-    // Mat filterByVariancePC(const Mat &data, std::vector<int>& outIndes);
-    // /*! \brief Multiplies two collections of vectors and then filter out undesired dimensions
-    //     \param slaveVec The first matrix of the multiplication.
-    //     \param masterVec The second matrix of the multiplication.
-    //     \param indexes The desired indexes of the desired features of the result of the multiplication.
-    //     \return The matrix resultant from the multiplication.
-    // */
-    // Mat filteringMultiplication(Mat slaveVec, Mat masterVec, vector<int> indexes);
-    // /*! \brief written by PC
-    // */
-    // Mat removeNullDimensions(Mat& data, vector<int>& validDimesions);
+    // void eps_svd(double eps_svd);
+    // void order(int order);
 
     // /*! \brief builds the parameters that are used on the calculation
     //            of the distances and are based on the _smin and _l class members
     // */
     // void build();
-    // /*! \brief builds the parameters that are used on the calculation
-    //            of the distances and are based on the _smin and _l
-    //            class members (written by PC)
-    // */
-    // void buildPC();
 
-    // /*
-    //  * The following three methods are not currently being worked on
-    //  * and they might not have any reason to continue to exist, since
-    //  * they are a simple particular case of the three methods that come after
-    //  */
-    // double pointTo(Mat point1, Mat point2);
-    // double pointToReference(Mat point);
-    // double pointToReferencePC(Mat point);
-    // /*! \brief calculates the polynomial Mahalanobis distance between
-    //            ref and each vector in points
-    //     \param points a collection of vectors
-    //     \param ref a single vector
-    //     \return a N x 1 matrix containing the calculated distances
-    //             where N is the number of vectors in points
-    // */
-    // Mat pointsTo(Mat points, Mat point);
-    // /*! \brief calculates the polynomial Mahalanobis distance between
-    //            the _reference class member and each vector in points
-    //     \param points a collection of vectors
-    //     \return a N x 1 matrix containing the calculated distances
-    //             where N is the number of vectors in points
-    // */
-    // Mat pointsToReference(Mat points);
-    // /*! \brief calculates the polynomial Mahalanobis distance between
-    //            the _reference class member and each vector in points
-    //            (written by PC)
-    //     \param points a collection of vectors
-    //     \return a N x 1 matrix containing the calculated distances
-    //             where N is the number of vectors in points
-    // */
-    // Mat pointsToReferencePC(Mat points);
-    // /*! \brief transforms an image into a collection of vectors
-    //            and calculates the polynomial Mahalanobis distance
-    //            between each of the vectors and ref
-    //     \param image an image
-    //     \param ref a single vector
-    //     \return an image where each pixel is the distance between the equivalent
-    //             pixel in the image argument and ref (might need transformations
-    //             before being properly visualized)
-    // */
-    template <typename T> Mat imageTo(Mat& image, Mat& ref);
-    /*! \brief transforms an image into a collection of vectors
-               and calculates the polynomial Mahalanobis distance between
-               each of the vectors and the _reference class member
-        \param image an image
-        \return an image where each pixel is the distance between the equivalent
-                pixel in the image argument and _reference (might need transformations
-                before being properly visualized)
+    /*! \brief Calcula a distância de Mahalanobis polinomial entre dois pontos
+        \param point1 Um ponto na forma de uma matriz coluna
+        \param point2 Um ponto na forma de uma matriz coluna
+        \return O valor da distância de Mahalanobis polinomial entre os pontos
+    */
+    double pointTo(Mat& im_data, Mat& refVector);
+    /*! \brief Calcula a distância de Mahalanobis polinomial entre um ponto e o centro da métrica
+        \param point Um ponto na forma de uma matriz coluna
+        \return O valor da distância de Mahalanobis polinomial entre os pontos
+    */
+    double pointToReference(Mat& im_data);
+    /*! \brief Calcula a distância de Mahalanobis polinomial entre um conjunto de pontos e um único ponto
+        \param points Uma matriz que contém conjunto de pontos, onde cada linha é um ponto e cada
+                      coluna é uma dimensão
+        \param ref Um único ponto na forma de uma matriz coluna
+        \return Matriz de todos os valores da distância de Mahalanobis polinomial entre o ponto correspondente
+                no conjunto de ponto passada como argumento e o ponto singular de referência
+    */ 
+    Mat pointsTo(Mat& im_data, Mat& refVector);
+    /*! \brief Calcula a distância de Mahalanobis polinomial entre um conjunto de pontos e o centro da métrica
+        \param points Uma matriz que contém conjunto de pontos, onde cada linha é um ponto e cada
+                      coluna é uma dimensão
+        \return Matriz de todos os valores da distância de Mahalanobis polinomial entre o ponto correspondente
+                no conjunto de ponto passada como argumento e o centro da métrica
+    */ 
+    Mat pointsToReference(Mat& im_data);
+    /*! \brief Transforma uma imagem em um conjunto de pontos e calcula a distância
+               de Mahalanobis polinomial entre ela e um ponto de referência
+        \param image Uma imagem
+        \param ref Um ponto na forma de uma matriz coluna
+        \return Uma imagem em que o valor de cada pixel é a distância de Mahalanobis polinomial entre
+                o pixel correspondente na imagem passada como argumento e o ponto de referência
+    */
+    template <typename T> Mat imageTo(Mat& image, Mat& refVector);
+    /*! \brief Transforma uma imagem em um conjunto de pontos e calcula a distância
+               de Mahalanobis polinomial entre ela e o centro da métrica
+        \param image Uma imagem
+        \return Uma imagem em que o valor de cada pixel é a distância de Mahalanobis polinomial entre
+                o pixel correspondente na imagem passada como argumento e o centro da métrica
     */
     template <typename T> Mat imageToReference(Mat& image);
-
-    Mat evaluateToVector(Mat im_data, Mat refVector);
-    Mat evaluateToCenter(Mat im_data);
 private:
-    Mat _inputMatrix;
     Mat _reference;
-    double _smin;
-    int _l;
+    double _eps_svd;
+    int _order;
     int _max_level;
     int _dimension;
     int _numberOfPoints;
-    int _polynomialDimension;
-    vector<Mat> _expandedReferences;
-    vector<Mat> _expandedUs;
-    vector<MahalaDist> _expandedDists;
-    vector<vector<int>> _indexesVector;
-    vector<double> _maxAbsVector;
-    MahalaDist _baseDist;
     bool _dirty;
-    bool _setReference;
 
+    /*
+     * struct usada para armazenar os parâmetros de cada nível da expansão polinomial 
+     */
     struct lev_basis {
         Mat A_basis;
         double max_aP;
@@ -186,6 +122,11 @@ private:
         double sigma_inv;
     };
 
-    vector<lev_basis> basisVec;
+    /*
+     * Distância de Mahalanobis linear, realiza o cálculo quando a ordem do polinômio é 1 (linear)
+     */
+    MahalaDist _baseMaha;
+
+    vector<lev_basis> _basisVec;
 };
 

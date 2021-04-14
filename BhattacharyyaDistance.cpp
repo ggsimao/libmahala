@@ -1,188 +1,53 @@
 #include "BhattacharyyaDistance.hpp"
 
-BhattaDist::BhattaDist(const Mat& input, double smin)
-    : _smin(smin)
-{
-    assert(input.data);
-    assert(input.type() == CV_64FC1);
-
-    Mat inputUnique = input;
-
-    // for (int i = 1; i < input.rows; ++i) {
-    //     int isInside = false;
-    //     for (int j = 0; j < inputUnique.rows; ++j) {
-    //         int count = 0;
-    //         for (int k = 0; k < inputUnique.cols; ++k) // checks by element of 
-    //             if(input.at<double>(i,k) == inputUnique.at<double>(j,k)) 
-    //                 ++count;
-    //         if (count == input.cols) {
-    //             isInside = true;
-    //             break;
-    //         }   
-    //     }
-    //     if (isInside == false) inputUnique.push_back( input.row(i) );
-    // }
-
-    _dimension = input.cols;
-    _numberOfPoints = inputUnique.rows;
-
-
-    _mi = Mat::zeros(_dimension, 1, CV_64FC1);
-
-    for (int i = 0; i < _dimension; i++) {
-        _mi.at<double>(i) += (mean(inputUnique.col(i)))[0];
-    }
-
-    Mat a = Mat(inputUnique.size(), input.type());
-
-    Mat refT = _mi.t();
-    for (int i = 0; i < _numberOfPoints; i++) {
-        a.row(i) = inputUnique.row(i) - refT;
-    }
-
-    /*
-     * The following if section was supposed to make calculations more
-     * efficient by reducing the size of the _c matrix, but it doesn't
-     * work with the used formula
-     */
-
-    // if (_dimension < _numberOfPoints) {
-        _c = (a.t() * a);
-    // } else {
-    //     _c = (_a * _a.t());
-    // }
-    Mat discard;
-    SVD::compute(_c, _w, discard, _u);
-    // SVD::compute(_c, _w, _u, discard);
-    // discard.release();
-    
-    // _c is not directly used but it's still in the code for completeness' sake
-    _c /= (_numberOfPoints - 1);
-
-    // _cInv = _c.inv();
-
-    assert(input.data);
-    assert(input.type() == CV_64FC1);
-
-    _dirty = 1;
-}
+BhattaDist::BhattaDist(vector<int> channels, vector<int> histSize, vector<float> ranges)
+    : _channels(channels), _histSize(histSize), _ranges(ranges) {}
 
 BhattaDist::BhattaDist() {}
 
 BhattaDist::~BhattaDist() {}
 
-/*------------------------------*/
-
-// Mat BhattaDist::inputMatrix() {
-//     return _inputMatrix;
-// }
-
-Mat BhattaDist::mi() {
-    return _mi;
+vector<int> BhattaDist::channels() {
+    return _channels;
 }
 
-double BhattaDist::smin() {
-    return _smin;
+vector<int> BhattaDist::histSize() {
+    return _histSize;
 }
 
-int BhattaDist::dimension() {
-    return _dimension;
+vector<float> BhattaDist::ranges() {
+    return _ranges;
 }
 
-Mat BhattaDist::c() {
-    return _c;
+template <typename T> double BhattaDist::calcBetweenPoints(Mat& points1, Mat& points2) {
+    Mat img1 = delinearizeImage<T>(points1, points1.rows, 1);
+    Mat img2 = delinearizeImage<T>(points2, points2.rows, 1);
+    return calcBetweenImg(img1, img2);
 }
 
-
-bool BhattaDist::dirty() {
-    return _dirty;
+double BhattaDist::calcBetweenImg(const Mat& image1, const Mat& image2, 
+                                  const Mat& mask1, const Mat& mask2) {
+    assert(image1.channels() == _channels.size());
+    assert(image2.channels() == _channels.size());
+    vector<Mat> imageVec1, imageVec2;
+    imageVec1.push_back(image1);
+    imageVec2.push_back(image2);
+    Mat hist1, hist2;
+    cv::calcHist(imageVec1, _channels, mask1, hist1, _histSize, _ranges);
+    cv::calcHist(imageVec2, _channels, mask2, hist2, _histSize, _ranges);
+    return calcBetweenHist(hist1, hist2);
 }
 
-const Mat BhattaDist::u() const {
-    return _u;
+double BhattaDist::calcBetweenHist(const Mat &hist1, const Mat &hist2) {
+    double hellinger = compareHist(hist1, hist2, HISTCMP_BHATTACHARYYA);
+    double bhatCoeff = -(hellinger * hellinger) + 1;
+    return -log(bhatCoeff);
 }
 
-Mat BhattaDist::w() {
-    assert(!_dirty);
-    return _w;
-}
-
-Mat BhattaDist::cSigma2Inv() {
-    assert(!_dirty);
-    return _cSigma2Inv;
-}
-
-double BhattaDist::sigma2() {
-    assert(!_dirty);
-    return _sigma2;
-}
-
-/*------------------------------*/
-
-void BhattaDist::smin(double smin) {
-    _smin = smin;
-    _dirty = 1;
-}
-
-void BhattaDist::build() {
-    if (!_dirty) return;
-
-    double w0 = _w.at<double>(0);
-    _sigma2 = _smin * w0;
-
-    Mat wSigma2 = Mat::diag(_w + _sigma2);
-
-    _cSigma2Inv = (_u.t() * wSigma2.inv() * _u) * (_numberOfPoints-1);
-    
-    _dirty = 0;
-}
-
-/*------------------------------*/
-
-double BhattaDist::pointsTo(Mat& points) {
-    BhattaDist metric = BhattaDist(points, _smin);
-    metric.build();
-    return metricTo(metric);
-}
-
-double BhattaDist::metricTo(BhattaDist& dist) {
-    assert(!_dirty);
-
-    Mat c2 = dist.c(), cSigma2Inv2 = dist.cSigma2Inv();
-    Mat mi2 = dist.mi(), miDiff = _mi - mi2;
-
-    // cout << c2 << endl;
-    // cout << _c << endl;
-    // cout << c2 << endl;
-    Mat prod1 = cSigma2Inv2 * _c;
-    Mat prod2 = _cSigma2Inv * c2;
-    Mat eye2 = 2 * Mat::eye(_dimension, _dimension, CV_64FC1);
-    double det = determinant(prod1 + prod2 + eye2);
-    cout << eye2 << endl;
-
-    double result = log(det/4)/4;
-    // Mat diffMult = miDiff*miDiff.t();
-    // result = trace((_c+c2).inv()*diffMult)[0] / 4;
-
-    return result;
-}
-
-template <typename T> double BhattaDist::imageTo(Mat& image) {
-    // Mat result = Mat(image.size(), CV_64FC1);
-    int numberOfChannels = image.channels();
-
-    Mat linearized = linearizeImage<T>(image);
-    linearized.convertTo(linearized, CV_64FC1);
-
-    double result = pointsTo(linearized);
-
-    return result;
-}
-
-template double BhattaDist::imageTo<uchar>(Mat& image);
-template double BhattaDist::imageTo<schar>(Mat& image);
-template double BhattaDist::imageTo<ushort>(Mat& image);
-template double BhattaDist::imageTo<short>(Mat& image);
-template double BhattaDist::imageTo<int>(Mat& image);
-template double BhattaDist::imageTo<float>(Mat& image);
-template double BhattaDist::imageTo<double>(Mat& image);
+template double BhattaDist::calcBetweenPoints<uchar>(Mat& points1, Mat& points2);
+template double BhattaDist::calcBetweenPoints<schar>(Mat& points1, Mat& points2);
+template double BhattaDist::calcBetweenPoints<ushort>(Mat& points1, Mat& points2);
+template double BhattaDist::calcBetweenPoints<short>(Mat& points1, Mat& points2);
+template double BhattaDist::calcBetweenPoints<int>(Mat& points1, Mat& points2);
+template double BhattaDist::calcBetweenPoints<float>(Mat& points1, Mat& points2);
+template double BhattaDist::calcBetweenPoints<double>(Mat& points1, Mat& points2);

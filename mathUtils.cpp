@@ -68,7 +68,7 @@ vector<int> find_eq(int opt, double *in, uint size) {
     return indexes;
 }
 
-double calcVariance(Mat A, int column) {
+double calcVarianceScalar(Mat A, int column) {
     assert(A.type() == CV_64FC1);
     double var = 0;
     uint nt = A.rows;
@@ -106,13 +106,13 @@ double calcVariance(Mat A, int column) {
     return var;
 }
 
-Mat calcVariance(Mat A) {
-    Mat var_dim = Mat::zeros(A.rows, 1, A.type());
+Mat calcVarianceVector(Mat A) {
+    Mat var_dim = Mat::zeros(A.cols, 1, A.type());
 
     uint nt = A.rows;
     uint dt = A.cols;
 
-    Mat mean = Mat::zeros(A.rows, 1, A.type());
+    Mat mean = Mat::zeros(A.cols, 1, A.type());
     for (uint k = 0; k < dt; k++) {
         for (uint i = 0; i < nt; i++) {
             mean.at<double>(k) += A.at<double>(i, k);
@@ -147,7 +147,7 @@ Mat removeNullDimensions(Mat A, vector<int> &ind_use) {
     uint nt = A.rows;
     uint dt = A.cols;
 
-    Mat var_new_dim = calcVariance(A);
+    Mat var_new_dim = calcVarianceVector(A);
 
     uint N = 0;
     double maxVar = getMaxValue(var_new_dim.clone().ptr<double>(0), dt);

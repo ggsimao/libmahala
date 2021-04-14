@@ -6,11 +6,13 @@ PointCollector::PointCollector(Mat& input) {
 
     Scalar color = Scalar(255, 255, 255);
 
+    Mat mask = Mat::zeros(input.size(), CV_8UC1);
+
     namedWindow("image");
 
     bool pressedLeft = false;
     bool pressedRight = false;
-    CallbackParams cp = {input, paintedImage, _collectedPixels, 
+    CallbackParams cp = {input, paintedImage, mask, _collectedPixels, 
                          _collectedCoordinates, pressedLeft, pressedRight,
                          _referencePixel, _referenceCoordinate, color};
 
@@ -121,13 +123,15 @@ PointCollector::PointCollector(const char* path, int flags) {
     Mat paintedImage = inputImage.clone();
     bool showCollectedPoints = true;
 
+    Mat mask = Mat::zeros(inputImage.size(), CV_8UC1);
+
     Scalar color = Scalar(255, 255, 255);
 
     namedWindow("image");
 
     bool pressedLeft = false;
     bool pressedRight = false;
-    CallbackParams cp = {inputImage, paintedImage, _collectedPixels, 
+    CallbackParams cp = {inputImage, paintedImage, mask, _collectedPixels, 
                          _collectedCoordinates, pressedLeft, pressedRight, 
                          _referencePixel, _referenceCoordinate, color};
 
@@ -346,9 +350,12 @@ void PointCollector::onMouse(int event, int x, int y, int flags, void* param) {
             // }
             // cout << mp->coordinates.rows << endl;
         } else {
-            mp->pixels.push_back(bgr);
-            mp->coordinates.push_back(xy);
-            circle(mp->paintedImg, Point(x,y), 3, Scalar(255, 255, 255), -1);
+            if (mp->mask.at<uchar>(y, x) == 0) {
+                mp->pixels.push_back(bgr);
+                mp->coordinates.push_back(xy);
+                circle(mp->paintedImg, Point(x,y), 3, Scalar(255, 255, 255), -1);
+                mp->mask.at<uchar>(y, x) = (uchar)255;
+            }
             // cout << mp->coordinates.rows << endl;
         }
         // cout << mp->points << endl;

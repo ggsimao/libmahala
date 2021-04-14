@@ -10,125 +10,107 @@
 
 using namespace cv;
 using namespace std;
-// using namespace classifiers;
 
-/*! \brief A class that holds the parameters required to calculate the Mahalanobis
-           distance between two points and can perform the calculation. It follows
-           the convention of single points being stored as a D x 1 matrix while
-           collections of points (even if they might be unitary) being stored
-           as a N x D matrix, with D being the number of features and N being the
-           number of samples
-    \param _c The covariance matrix of the point neighborhood
-    \param _u Lateral matrix resultant of performing an SVD operation on A^T * A, where
-              A is the difference between each row of the point neighborhood matrix and _reference
-    \param _w Central matrix resultant of performing an SVD operation on A^T * A, where
-              A is the difference between each row of the point neighborhood matrix and _reference
-    \param _reference Reference point (usually the mean of the point neighborhood)
-    \param _cSigma2Inv Inverse of the covariance matrix when _sigma2 is added to _w
-                       (it's used to calculate the distances instead of the traditional
-                       inverse because the latter might not be obtainable)
-    \param _smin User-set parameter used to guarantee that _c will be inversible but also slightly
-                 changes the result (can also be used to make the calculation more efficient in
-                 a formula that is currently not being used)
-    \param _sigma2 _smin-derived parameter that is actually used on the calculations
-    \param _dimension Number of dimensions of the point neighborhood
-    \param _numberOfPoints Number of points in the point neighborhood (not necessarily
-                           including the reference)
-    \param _dirty True if the build() method needs to be called before calculating a distance
+/*! \brief Classe que contém os parâmetros necessários para calcular a distância de
+           Mahalanobis entre pontos e realiza o cálculo
+    \param c A matriz de covariância da vizinhança de pontos (somente leitura)
+    \param u Matriz lateral resultante de uma operação de SVD em C * (N-1), em que
+             C é a matriz de covariância associada à classe e N é a cardinalidade
+             da vizinhança de pontos (somente leitura)
+    \param w Matriz central resultante de uma operação de SVD em C * (N-1), em que
+             C é a matriz de covariância associada à classe e N é a cardinalidade
+             da vizinhança de pontos (somente leitura)
+    \param reference Centro da métrica (média da vizinhança de pontos, por padrão) (somente leitura)
+    \param cSigma2Inv Matriz usada para realizar o cálculo da distância no lugar da
+                      inversa da matriz de covariância da vizinhança de pontos C, calculada
+                      a partir de C e smin (somente leitura)
+    \param smin Parâmetro do usuário, usado para garantir a inversão da matriz de
+                covariância da vizinhança de pontos C, alterando o resultado
+                proporcionalmente ao seu valor (leitura e escrita)
+    \param sigma2 Valor derivado de smin, usado diretamente para o cálculo de cSigma2Inv (somente leitura)
+    \param dimension Número de dimensões dos pontos usados para construir a métrica (somente leitura)
+    \param dirty Indica se o método build() precisa ser chamado antes de o objeto poder
+                 realizar o cálculo da distância (somente leitura)
 */
 class MahalaDist {
 public:
-    /*! \brief Constructor
-        \param input The point neighborhood used to build the metric
-        \param smin Will be the _smin class member
-        \param reference Will be the _reference class member (which will be the mean of
-                         the point neighborhood if empty)
+    /*! \brief Construtor
+        \param input Matriz da vizinhança de pontos, em que cada linha é um ponto
+                     e cada coluna uma dimensão
+        \param smin Parâmetro usado para garantir a inversão da matriz de
+                    covariância da vizinhança de pontos C, alterando o resultado
+                    proporcionalmente ao seu valor
+        \param reference Centro da métrica (média da vizinhança de pontos, por padrão)
+                         na forma de uma matriz coluna
     */
     MahalaDist(const Mat& input, double smin, Mat reference = Mat());
     MahalaDist();
     virtual ~MahalaDist();
 
-    // getters (need to be updated)
-    // Mat inputMatrix();
+    // getters
     Mat reference();
     double smin();
     int dimension();
-    // int numberOfPoints();
     bool dirty();
     const Mat u() const;
-    // const Mat uK() const;
     Mat w();
     Mat c();
     Mat cSigma2Inv();
-    // double w(int k);
-    // double wSigma2(int k);
-    // double c(int k);
     double sigma2();
 
     // setter
     void smin(double smin);
 
-    /*! \brief Builds the parameters that are used on the calculation
-               of the distances and are based on the _smin class member
+    /*! \brief Calcula os parâmetros necessários para o cálculo
+               da distância que são dependentes do atributo smin
     */
     void build();
 
-    /*! \brief Calculates the Mahalanobis distance between
-               the point1 and point2 arguments
-        \param point1 A single point
-        \param point2 A single point
-        \return The value of the Mahalanobis distance
+    /*! \brief Calcula a distância de Mahalanobis entre dois pontos
+        \param point1 Um ponto na forma de uma matriz coluna
+        \param point2 Um ponto na forma de uma matriz coluna
+        \return O valor da distância de Mahalanobis entre os pontos
     */
     double pointTo(Mat& point1, Mat& point2);
-    /*! \brief Calculates the Mahalanobis distance between
-               the _reference class member and the point argument
-        \param point A single point
-        \return The value of the Mahalanobis distance
+    /*! \brief Calcula a distância de Mahalanobis entre um ponto e o centro da métrica
+        \param point Um ponto na forma de uma matriz coluna
+        \return O valor da distância de Mahalanobis entre os pontos
     */
     double pointToReference(Mat& point);
-    /*! \brief Calculates the Mahalanobis distance between
-               ref and each point in points
-        \param points A collection of points
-        \param ref A single point
-        \return A N x 1 matrix containing the calculated distances
-                where N is the number of points in points
+    /*! \brief Calcula a distância de Mahalanobis entre um conjunto de pontos e um único ponto
+        \param points Uma matriz que contém conjunto de pontos, onde cada linha é um ponto e cada
+                      coluna é uma dimensão
+        \param ref Um único ponto na forma de uma matriz coluna
+        \return Matriz de todos os valores da distância entre o ponto correspondente
+                no conjunto de ponto passada como argumento e o ponto singular de referência
     */ 
     Mat pointsTo(Mat& points, Mat& ref);
-    /*! \brief Calculates the Mahalanobis distance between
-               the _reference class member and each point in points
-        \param points A collection of points
-        \return A N x 1 matrix containing the calculated distances
-                where N is the number of points in points
+    /*! \brief Calcula a distância de Mahalanobis entre um conjunto de pontos e o centro da métrica
+        \param points Uma matriz que contém conjunto de pontos, onde cada linha é um ponto e cada
+                      coluna é uma dimensão
+        \return Matriz de todos os valores da distância entre o ponto correspondente
+                no conjunto de ponto passada como argumento e o centro da métrica
     */ 
     Mat pointsToReference(Mat& points);
-    /*! \brief Transforms an image into a collection of points
-               and calculates the Mahalanobis distance between
-               each of the points and ref
-        \param image An image
-        \param ref A single point
-        \return An image where each pixel is the distance between the equivalent
-                pixel in the image argument and ref (might need transformations
-                before being properly visualized)
+    /*! \brief Transforma uma imagem em um conjunto de pontos e calcula a distância
+               de Mahalanobis entre ela e um ponto de referência
+        \param image Uma imagem
+        \param ref Um ponto na forma de uma matriz coluna
+        \return Uma imagem em que o valor de cada pixel é a distância de Mahalanobis entre
+                o pixel correspondente na imagem passada como argumento e o ponto de referência
     */
     template <typename T> Mat imageTo(Mat& image, Mat& ref);
-    /*! \brief Transforms an image into a collection of points
-               and calculates the Mahalanobis distance between
-               each of the points and the _reference class member
-        \param image An image
-        \return An image where each pixel is the distance between the equivalent
-                pixel in the image argument and _reference (might need transformations
-                before being properly visualized)
+    /*! \brief Transforma uma imagem em um conjunto de pontos e calcula a distância
+               de Mahalanobis entre ela e o centro da métrica
+        \param image Uma imagem
+        \return Uma imagem em que o valor de cada pixel é a distância de Mahalanobis entre
+                o pixel correspondente na imagem passada como argumento e o centro da métrica
     */
     template <typename T> Mat imageToReference(Mat& image);
 private:
-    // Mat _inputMatrix;
-    // Mat _a;
     Mat _c;
-    // Mat _cInv;
     Mat _u;
-    // Mat _uK;
     Mat _w;
-    // Mat _wSigma2;
     Mat _reference;
     Mat _cSigma2Inv;
     double _smin;
@@ -136,5 +118,4 @@ private:
     int _dimension;
     int _numberOfPoints;
     bool _dirty;
-    // bool _setReference;
 };

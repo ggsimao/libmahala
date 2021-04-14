@@ -1,4 +1,5 @@
 #include "MahalanobisDistance.hpp"
+#include "DummyMahalanobisDistance.hpp"
 #include "PolynomialMahalanobisDistance.hpp"
 #include "BhattacharyyaDistance.hpp"
 #include "PointCollector.hpp"
@@ -40,7 +41,6 @@ int main(int argc, char** argv)
 
     md = MahalaDist(mat, 0.00000000000001, average);
     md.build();
-    pmd = PolyMahalaDist(mat, 10, 4e-6, average);
     // pmd.build();
     average = md.reference();
 
@@ -54,69 +54,27 @@ int main(int argc, char** argv)
         }
     }
     result = coordinates ? md.imageToReference<double>(img) : md.imageToReference<uchar>(img);
-    Mat resultPoly = coordinates ? pmd.imageToReference<double>(img) : pmd.imageToReference<uchar>(img);
     Mat distMat = Mat(img.rows * img.cols, 1, CV_64FC1);
 
-    
-    // Mat averageT = average.t();
-    // cout << averageT << endl;
-    // cout << pmd.polynomialProjection(averageT) << endl;
-    // cout << averageT.at<double>(0) * averageT.at<double>(0) << endl;
-    // cout << averageT.at<double>(1) * averageT.at<double>(1) << endl;
-    // cout << averageT.at<double>(0) * averageT.at<double>(1) << endl;
-    
+        
     Mat linearized = coordinates ? linearizeImage<double>(img) : linearizeImage<uchar>(img);
     linearized.convertTo(linearized, CV_64FC1);
-    // cout << pmd.pointsTo(linearized) << endl;
 
 
-    // BhattaDist bd = BhattaDist(linearized, 0);
-    // bd.build();
-    // Mat otherImage = imread("images/building.png", IMREAD_COLOR);
-    // Mat linearizedOther = coordinates ? linearizeImage<double>(otherImage) : linearizeImage<uchar>(otherImage);
-    // linearized.convertTo(linearized, CV_32FC1);
-    // Mat hist, histOther;
-    // int r_bins = 256, g_bins = 256, b_bins = 256;
-    // int histSize[] = { b_bins, g_bins, r_bins };
-    // int channels[] = { 0, 1, 2 };
-    // Mat bgrArray[3];
-    // split(img, bgrArray);
-    // double minHist, maxHist;
-    // cv::minMaxLoc(bgrArray[0], &minHist, &maxHist);
-    // float b_ranges1[] = { minHist, maxHist };
-    // cv::minMaxLoc(bgrArray[1], &minHist, &maxHist);
-    // float g_ranges1[] = { minHist, maxHist };
-    // cv::minMaxLoc(bgrArray[2], &minHist, &maxHist);
-    // float r_ranges1[] = { minHist, maxHist };
-    // const float* ranges1[] = { b_ranges1, g_ranges1, r_ranges1 };
-    // split(otherImage, bgrArray);
-    // cv::minMaxLoc(bgrArray[0], &minHist, &maxHist);
-    // float r_ranges2[] = { minHist, maxHist };
-    // cv::minMaxLoc(bgrArray[0], &minHist, &maxHist);
-    // float g_ranges2[] = { minHist, maxHist };
-    // cv::minMaxLoc(bgrArray[0], &minHist, &maxHist);
-    // float b_ranges2[] = { minHist, maxHist };
-    // const float* ranges2[] = { b_ranges2, g_ranges2, r_ranges2 };
-    // calcHist(&img, 1, channels, Mat(), hist, 3, histSize, ranges1);
-    // normalize( hist, hist, 0, 1, NORM_MINMAX, -1, Mat() );
-    // calcHist(&otherImage, 1, channels, Mat(), histOther, 3, histSize, ranges2);
-    // normalize( histOther, histOther, 0, 1, NORM_MINMAX, -1, Mat() );
-    // linearizedOther.convertTo(linearizedOther, CV_32FC1);
-    // cout << "BhattaDist = " << bd.imageTo<uchar>(otherImage) << endl;
-    // cout << "CompareHist = " << compareHist(hist, histOther, HISTCMP_BHATTACHARYYA) << endl;
+    vector<int> chans = {0,1,2};
+    vector<int> sizes = {256,256,256};
+    vector<float> ranges = {0, 255, 0, 255, 0, 255};
+    BhattaDist bd = BhattaDist(chans, sizes, ranges);
+    Mat otherImage = imread("images/leafsick.jpg", IMREAD_COLOR);
+    cout << "BhattaDist = " << bd.calcBetweenImg(otherImage, otherImage) << endl;
 
-    Mat icovar = md.c().inv();
-    Mat averageCV = md.reference().t();
-
-
-    for (int i = 0; i < linearized.rows; i++) {
-        distMat.at<double>(i) = Mahalanobis(linearized.row(i), averageCV, icovar);
-    }
-    resultCV = delinearizeImage<double>(distMat, img.rows, img.cols);
+    DummyMahalaDist dmd = DummyMahalaDist(mat, average);
+    resultCV = coordinates ? dmd.imageToReference<double>(img) : dmd.imageToReference<uchar>(img);
 
     resultDiff = result - resultCV;
-    // sqrt(resultDiff, resultDiff);
-    // resultDiff = resultDiff.mul(resultDiff);
+
+    pmd = PolyMahalaDist(mat, 4, 4e-6, average);
+    Mat resultPoly = coordinates ? pmd.imageToReference<double>(img) : pmd.imageToReference<uchar>(img);
 
     normalize(result, result, 255, 0, NORM_MINMAX);
     result.convertTo(result, CV_8UC1);

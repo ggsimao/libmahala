@@ -25,6 +25,7 @@ add_executable(main main.cpp
                     PointCollector.cpp
                     PolynomialMahalanobisDistance.cpp
                     MahalanobisDistance.cpp
+                    DummyMahalanobisDistance.cpp
                     BhattacharyyaDistance.cpp
                     imageUtils.hpp
                     mathUtils.cpp)
