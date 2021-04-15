@@ -6,8 +6,7 @@ includedir=${prefix}/include
 Name: libmahala
 Description: A library for usage of the Mahalanobis distance, the Polynomial Mahalanobis distance and the Bhattacharyya distance in Computer Vision applications
 Version: 0.0.0
-URL: https://github.com/ggsimao/tcc_mahalanobis
-Requires: libopencv > 4.0.0
-Libs: -L${libdir} -llibmahala
-Libs.private: -lm
+URL: https://github.com/ggsimao/libmahala
+Requires: opencv4
+Libs: -L${libdir} -lmahala
 Cflags: -I${includedir}/libmahala
