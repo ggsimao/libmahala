@@ -1,8 +1,6 @@
-#pragma once
-
 #include "PolynomialMahalanobisDistance.hpp"
 
-PolyMahalaDist::PolyMahalaDist(const Mat& input, int order, double sig_max, Mat reference) {
+PolyMahalaDist::PolyMahalaDist(const Mat& input, int order, double eps_svd, Mat reference) {
     // static const int numThread = 4;//omp_get_max_threads();
 
     assert(order > 0);
@@ -11,10 +9,10 @@ PolyMahalaDist::PolyMahalaDist(const Mat& input, int order, double sig_max, Mat 
     _order = order;
     _numberOfPoints = input.rows;
     _dimension = input.cols;
-    _eps_svd = sig_max;
+    _eps_svd = eps_svd;
 
     if (order == 1) {
-        _baseMaha = MahalaDist(input, sig_max, reference);
+        _baseMaha = MahalaDist(input, _eps_svd, reference);
         _baseMaha.build();
         return;
     }
@@ -531,6 +529,237 @@ template <typename T> Mat PolyMahalaDist::imageTo(Mat& image, Mat& refVector) {
 
 template <typename T> Mat PolyMahalaDist::imageToReference(Mat& image) {
     return imageTo<T>(image, _reference);
+}
+
+// *! \brief Transforma uma matriz de C canais, N linhas e M colunas em uma matriz
+//            de (N*M) linhas e C colunas
+//     \param image A matriz a ser transformada
+//     \return A matriz linearizada
+// *//
+template <typename T> Mat PolyMahalaDist::linearizeImage(Mat& image) {
+    int numberOfChannels = image.channels();
+
+    Mat linearized = Mat(numberOfChannels, image.rows * image.cols, image.type() % 8);
+    vector<Mat> bgrArray;
+    split(image, bgrArray);
+    
+    for (int c = 0; c < numberOfChannels; c++) {
+        Mat a = bgrArray[c];
+        for (int i = 0; i < image.rows; i++) {
+            for (int j = 0; j < image.cols; j++) {
+                int currentIndex = i*image.cols + j;
+                linearized.at<T>(c, currentIndex) = (double)a.at<T>(i,j);
+            }
+        }
+    }
+
+    linearized = linearized.t();
+
+    return linearized;
+}
+
+// /*! \brief Transforma uma matriz de 1 canal, (N*M) linhas e C colunas em uma matriz
+//            de C canais, N linhas e M colunas
+//     \param image A matriz a ser transformada
+//     \param rows Número de linhas da matriz resultante
+//     \param rows Número de colunas da matriz resultante
+//     \return A matriz delinearizada
+// */
+template <typename T> Mat PolyMahalaDist::delinearizeImage(Mat& linearized, int rows, int cols) {
+    assert(linearized.rows == rows*cols);
+    int numberOfChannels = linearized.cols;
+
+    Mat result;
+    vector<Mat> channels;
+    linearized = linearized.t();
+
+    Mat a = Mat(rows, cols, linearized.type());
+    for (int c = 0; c < numberOfChannels; c++) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                int currentIndex = i*cols + j;
+                a.at<T>(i, j) = linearized.at<T>(c, currentIndex);
+            }
+        }
+        channels.push_back(a.clone());
+    }
+
+    linearized = linearized.t();
+
+    merge(channels, result);
+
+    return result;
+}
+
+Mat PolyMahalaDist::calc_mean(Mat data) {
+    int d = data.cols;
+
+    Mat m = Mat(d, 1, CV_64FC1);
+
+    for (uint i = 0; i < d; i++) {
+        m.at<double>(i) = (mean(data.col(i)))[0];
+    }
+
+    return m;
+}
+
+double PolyMahalaDist::getMaxValue(double *in, uint size) {
+    double max = 0;
+    for (uint i = 0; i < size; i++) {
+        if (in[i] > max) max = in[i];
+    }
+    return max;
+}
+
+double PolyMahalaDist::getMaxAbsValue(double *in, uint size) {
+    double max = 0;
+    for (uint i = 0; i < size; i++) {
+        if (abs(in[i]) > max) max = abs(in[i]);
+    }
+    return max;
+}
+
+Mat PolyMahalaDist::polynomialProjection(Mat vec) {
+    Mat gvec; //= Mat(vec.rows, (vec.cols + 2) * (vec.cols + 1) / 2 - 1, vec.type());
+
+    Mat vec_sq = vec.mul(vec); // square each of vec's elements
+    Mat vec_cross = Mat(vec.rows, vec.cols * (vec.cols - 1) / 2, vec.type()); // cross products between vec's elements
+
+    int k = 0;
+    // calculates the cross products:
+    for (int i = 0; i < vec.cols; i++) {
+        for (int j = i+1; j < vec.cols; j++) {
+            vec_cross.col(k) = vec.col(i).mul(vec.col(j));
+            k++;
+        }
+    }
+
+    Mat mats[3] = {vec, vec_sq, vec_cross};
+    hconcat(mats, 3, gvec);
+
+    return gvec;
+}
+
+vector<int> PolyMahalaDist::find_eq(int opt, double *in, uint size) {
+    vector<int> indexes;
+    if (opt < 0) {
+        for (uint i = 0; i < size; i++) {
+            if (in[i] < 0) indexes.push_back(i);
+        }
+    } else if (opt > 0) {
+        for (uint i = 0; i < size; i++) {
+            if (in[i] > 0) indexes.push_back(i);
+        }
+    } else {
+        for (uint i = 0; i < size; i++) {
+            if (in[i] == 0) indexes.push_back(i);
+        }
+    }
+
+    return indexes;
+}
+
+double PolyMahalaDist::calcVarianceScalar(Mat A, int column) {
+    assert(A.type() == CV_64FC1);
+    double var = 0;
+    uint nt = A.rows;
+    uint dt = A.cols;
+
+    if (column == -1) {
+        double sum = 0;
+        for (uint i = 0; i < nt; i++) {
+            for (uint j = 0; j < dt; j++) {
+                sum += A.at<double>(i, j);
+            }
+        }
+        double mean = sum / (nt * dt);
+
+        sum = 0;
+        for (uint i = 0; i < nt; i++) {
+            for (uint j = 0; j < dt; j++) {
+                sum += (A.at<double>(i, j) - mean) * (A.at<double>(i, j) - mean);
+            }
+        }
+        var = 1 / ((double) (nt * dt) - 1) * sum;
+    } else {
+        double sum = 0;
+        for (unsigned int i = 0; i < nt; i++) {
+            sum += A.at<double>(i, column);
+        }
+        double mean = sum / nt;
+
+        sum = 0;
+        for (uint i = 0; i < nt; i++) {
+            sum += (A.at<double>(i, column) - mean) * (A.at<double>(i, column) - mean);
+        }
+        var = 1 / ((double) nt - 1) * sum;
+    }
+    return var;
+}
+
+Mat PolyMahalaDist::calcVarianceVector(Mat A) {
+    Mat var_dim = Mat::zeros(A.cols, 1, A.type());
+
+    uint nt = A.rows;
+    uint dt = A.cols;
+
+    Mat mean = Mat::zeros(A.cols, 1, A.type());
+    for (uint k = 0; k < dt; k++) {
+        for (uint i = 0; i < nt; i++) {
+            mean.at<double>(k) += A.at<double>(i, k);
+        }
+    }
+    mean /= nt;
+
+    for (uint k = 0; k < dt; k++) {
+        for (uint i = 0; i < nt; i++) {
+            var_dim.at<double>(k) += (A.at<double>(i, k) - mean.at<double>(k)) * (A.at<double>(i, k) - mean.at<double>(k));
+        }
+    }
+    var_dim /= (nt - 1);
+
+    return var_dim;
+}
+
+Mat PolyMahalaDist::removeNullIndexes(Mat A, vector<int> ind_use) {
+    Mat new_dim_usedT, aT = A.t();
+
+    for (uint i = 0; i < ind_use.size(); i++) {
+        new_dim_usedT.push_back(aT.row(ind_use[i]));
+    }
+
+    Mat new_dim_used = new_dim_usedT.t();
+
+    return new_dim_used;
+}
+
+Mat PolyMahalaDist::removeNullDimensions(Mat A, vector<int> &ind_use) {
+
+    uint nt = A.rows;
+    uint dt = A.cols;
+
+    Mat var_new_dim = calcVarianceVector(A);
+
+    uint N = 0;
+    double maxVar = getMaxValue(var_new_dim.clone().ptr<double>(0), dt);
+    for (uint i = 0; i < dt; i++) {
+        if (var_new_dim.at<double>(i) > 1e-8 * maxVar) N++;
+    }
+    ind_use.push_back(N);
+
+    Mat newMat = Mat(nt, N, CV_64FC1);
+    int k = 0;
+    for (uint i = 0; i < dt; i++) {
+        if (var_new_dim.at<double>(i) > 1e-8 * maxVar) {
+            for (uint j = 0; j < nt; j++) {
+                newMat.at<double>(j, k) = A.at<double>(j, i);
+            }
+            ind_use.push_back(i);
+            k++;
+        }
+    }
+
+    return newMat;
 }
 
 template Mat PolyMahalaDist::imageTo<uchar>(Mat& image, Mat& refVector);

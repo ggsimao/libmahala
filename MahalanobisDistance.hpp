@@ -2,11 +2,12 @@
 
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "imageUtils.hpp"
 
 #include <iostream>
 #include <vector>
 #include <math.h>
+
+// #include <libmahala>
 
 using namespace cv;
 using namespace std;
@@ -43,7 +44,7 @@ public:
         \param reference Centro da métrica (média da vizinhança de pontos, por padrão)
                          na forma de uma matriz coluna
     */
-    MahalaDist(const Mat& input, double smin, Mat reference = Mat());
+    MahalaDist(const Mat& input, double smin = 4e-6, Mat reference = Mat());
     MahalaDist();
     virtual ~MahalaDist();
 
@@ -118,4 +119,7 @@ private:
     int _dimension;
     int _numberOfPoints;
     bool _dirty;
+
+    template <typename T> Mat linearizeImage(Mat& image);
+    template <typename T> Mat delinearizeImage(Mat& linearized, int rows, int cols);
 };

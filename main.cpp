@@ -61,12 +61,16 @@ int main(int argc, char** argv)
     linearized.convertTo(linearized, CV_64FC1);
 
 
-    vector<int> chans = {0,1,2};
-    vector<int> sizes = {256,256,256};
-    vector<float> ranges = {0, 255, 0, 255, 0, 255};
+    vector<int> chans = {0,1};
+    vector<int> sizes = {size, size};
+    float sizeFloat = size;
+    vector<float> ranges = {0, sizeFloat, 0, sizeFloat};
     BhattaDist bd = BhattaDist(chans, sizes, ranges);
-    Mat otherImage = imread("images/leafsick.jpg", IMREAD_COLOR);
-    cout << "BhattaDist = " << bd.calcBetweenImg(otherImage, otherImage) << endl;
+    // Mat otherImage = imread("images/leafsick.jpg", IMREAD_COLOR);
+    Mat otherImage = Mat::zeros(size, size, CV_8UC1);
+    // PointCollector otherPC = PointCollector(otherImage);
+    // Mat otherMat = otherPC.collectedCoordinates();
+    cout << "BhattaDist = " << bd.calcBetweenPoints(mat, mat) << endl;
 
     DummyMahalaDist dmd = DummyMahalaDist(mat, average);
     resultCV = coordinates ? dmd.imageToReference<double>(img) : dmd.imageToReference<uchar>(img);

@@ -38,6 +38,7 @@ PointCollector::PointCollector(Mat& input) {
                 _referencePixel.release();
                 _referenceCoordinate.release();
                 paintedImage = input.clone();
+                mask = Mat::zeros(input.size(), CV_8UC1);
                 break;
             case 1048625: // 1 key
                 color[0] = max(0.0, color[0]-1);
@@ -156,6 +157,7 @@ PointCollector::PointCollector(const char* path, int flags) {
                 _referencePixel.release();
                 _referenceCoordinate.release();
                 paintedImage = inputImage.clone();
+                mask = Mat::zeros(inputImage.size(), CV_8UC1);
                 break;
             case 1048625: // 1 key
                 color[0] = max(0.0, color[0]-1);

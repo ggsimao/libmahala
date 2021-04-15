@@ -230,6 +230,66 @@ template <typename T> Mat MahalaDist::imageToReference(Mat& image) {
     return imageTo<T>(image, _reference);
 }
 
+// *! \brief Transforma uma matriz de C canais, N linhas e M colunas em uma matriz
+//            de (N*M) linhas e C colunas
+//     \param image A matriz a ser transformada
+//     \return A matriz linearizada
+// *//
+template <typename T> Mat MahalaDist::linearizeImage(Mat& image) {
+    int numberOfChannels = image.channels();
+
+    Mat linearized = Mat(numberOfChannels, image.rows * image.cols, image.type() % 8);
+    vector<Mat> bgrArray;
+    split(image, bgrArray);
+    
+    for (int c = 0; c < numberOfChannels; c++) {
+        Mat a = bgrArray[c];
+        for (int i = 0; i < image.rows; i++) {
+            for (int j = 0; j < image.cols; j++) {
+                int currentIndex = i*image.cols + j;
+                linearized.at<T>(c, currentIndex) = (double)a.at<T>(i,j);
+            }
+        }
+    }
+
+    linearized = linearized.t();
+
+    return linearized;
+}
+
+// /*! \brief Transforma uma matriz de 1 canal, (N*M) linhas e C colunas em uma matriz
+//            de C canais, N linhas e M colunas
+//     \param image A matriz a ser transformada
+//     \param rows Número de linhas da matriz resultante
+//     \param rows Número de colunas da matriz resultante
+//     \return A matriz delinearizada
+// */
+template <typename T> Mat MahalaDist::delinearizeImage(Mat& linearized, int rows, int cols) {
+    assert(linearized.rows == rows*cols);
+    int numberOfChannels = linearized.cols;
+
+    Mat result;
+    vector<Mat> channels;
+    linearized = linearized.t();
+
+    Mat a = Mat(rows, cols, linearized.type());
+    for (int c = 0; c < numberOfChannels; c++) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                int currentIndex = i*cols + j;
+                a.at<T>(i, j) = linearized.at<T>(c, currentIndex);
+            }
+        }
+        channels.push_back(a.clone());
+    }
+
+    linearized = linearized.t();
+
+    merge(channels, result);
+
+    return result;
+}
+
 template Mat MahalaDist::imageTo<uchar>(Mat& image, Mat& ref);
 template Mat MahalaDist::imageTo<schar>(Mat& image, Mat& ref);
 template Mat MahalaDist::imageTo<ushort>(Mat& image, Mat& ref);

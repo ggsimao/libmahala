@@ -2,7 +2,6 @@
 
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "imageUtils.hpp"
 
 #include <iostream>
 #include <vector>
@@ -40,7 +39,7 @@ public:
                        coluna é uma dimensão
         \return O valor da distância de Bhattacharyya entre os dois conjuntos de pontos
     */
-    template <typename T> double calcBetweenPoints(Mat& points1, Mat& points2);
+    double calcBetweenPoints(Mat& points1, Mat& points2);
     /*! \brief Calcula a distância de Bhattacharyya entre duas imagens
         \param image1 Uma imagem
         \param image2 Uma imagem
@@ -63,4 +62,7 @@ private:
     vector<int> _channels;
     vector<int> _histSize;
     vector<float> _ranges;
+
+    template <typename T> Mat linearizeImage(Mat& image);
+    template <typename T> Mat delinearizeImage(Mat& linearized, int rows, int cols);
 };
