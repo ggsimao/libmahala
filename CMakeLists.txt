@@ -72,7 +72,7 @@ if(WITH_PYTHON)
     find_program(PYTHON "python")
 
     if (PYTHON)
-        set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/install_lib.py")
+        set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/../install_lib.py")
 
         install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY})")
     endif()
