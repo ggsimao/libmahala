@@ -6,6 +6,7 @@
 /home/acerola/Desktop/libmahala/build/CMakeFiles/edit_cache.dir
 /home/acerola/Desktop/libmahala/build/CMakeFiles/libmahalapy.dir
 /home/acerola/Desktop/libmahala/build/CMakeFiles/libmahala.dir
+/home/acerola/Desktop/libmahala/build/CMakeFiles/mahala_test.dir
 /home/acerola/Desktop/libmahala/build/extern/pybind11/CMakeFiles/install/strip.dir
 /home/acerola/Desktop/libmahala/build/extern/pybind11/CMakeFiles/install/local.dir
 /home/acerola/Desktop/libmahala/build/extern/pybind11/CMakeFiles/install.dir

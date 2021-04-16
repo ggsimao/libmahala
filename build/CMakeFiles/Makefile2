@@ -55,6 +55,7 @@ CMAKE_BINARY_DIR = /home/acerola/Desktop/libmahala/build
 # The main recursive "all" target.
 all: CMakeFiles/libmahalapy.dir/all
 all: CMakeFiles/libmahala.dir/all
+all: CMakeFiles/mahala_test.dir/all
 all: extern/pybind11/all
 
 .PHONY : all
@@ -62,6 +63,7 @@ all: extern/pybind11/all
 # The main recursive "clean" target.
 clean: CMakeFiles/libmahalapy.dir/clean
 clean: CMakeFiles/libmahala.dir/clean
+clean: CMakeFiles/mahala_test.dir/clean
 clean: extern/pybind11/clean
 
 .PHONY : clean
@@ -124,6 +126,33 @@ libmahala: CMakeFiles/libmahala.dir/rule
 CMakeFiles/libmahala.dir/clean:
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/clean
 .PHONY : CMakeFiles/libmahala.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/mahala_test.dir
+
+# All Build rule for target.
+CMakeFiles/mahala_test.dir/all:
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/depend
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/acerola/Desktop/libmahala/build/CMakeFiles --progress-num=13,14,15,16,17,18 "Built target mahala_test"
+.PHONY : CMakeFiles/mahala_test.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/mahala_test.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/acerola/Desktop/libmahala/build/CMakeFiles 6
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/mahala_test.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/acerola/Desktop/libmahala/build/CMakeFiles 0
+.PHONY : CMakeFiles/mahala_test.dir/rule
+
+# Convenience name for target.
+mahala_test: CMakeFiles/mahala_test.dir/rule
+
+.PHONY : mahala_test
+
+# clean rule for target.
+CMakeFiles/mahala_test.dir/clean:
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/clean
+.PHONY : CMakeFiles/mahala_test.dir/clean
 
 #=============================================================================
 # Directory level rules for directory extern/pybind11

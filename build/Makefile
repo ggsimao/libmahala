@@ -182,6 +182,19 @@ libmahala/fast:
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/build
 .PHONY : libmahala/fast
 
+#=============================================================================
+# Target rules for targets named mahala_test
+
+# Build rule for target.
+mahala_test: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 mahala_test
+.PHONY : mahala_test
+
+# fast build rule for target.
+mahala_test/fast:
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/build
+.PHONY : mahala_test/fast
+
 BhattacharyyaDistance.o: BhattacharyyaDistance.cpp.o
 
 .PHONY : BhattacharyyaDistance.o
@@ -190,6 +203,7 @@ BhattacharyyaDistance.o: BhattacharyyaDistance.cpp.o
 BhattacharyyaDistance.cpp.o:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/BhattacharyyaDistance.cpp.o
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/BhattacharyyaDistance.cpp.o
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/BhattacharyyaDistance.cpp.o
 .PHONY : BhattacharyyaDistance.cpp.o
 
 BhattacharyyaDistance.i: BhattacharyyaDistance.cpp.i
@@ -200,6 +214,7 @@ BhattacharyyaDistance.i: BhattacharyyaDistance.cpp.i
 BhattacharyyaDistance.cpp.i:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/BhattacharyyaDistance.cpp.i
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/BhattacharyyaDistance.cpp.i
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/BhattacharyyaDistance.cpp.i
 .PHONY : BhattacharyyaDistance.cpp.i
 
 BhattacharyyaDistance.s: BhattacharyyaDistance.cpp.s
@@ -210,6 +225,7 @@ BhattacharyyaDistance.s: BhattacharyyaDistance.cpp.s
 BhattacharyyaDistance.cpp.s:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/BhattacharyyaDistance.cpp.s
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/BhattacharyyaDistance.cpp.s
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/BhattacharyyaDistance.cpp.s
 .PHONY : BhattacharyyaDistance.cpp.s
 
 MahalanobisDistance.o: MahalanobisDistance.cpp.o
@@ -220,6 +236,7 @@ MahalanobisDistance.o: MahalanobisDistance.cpp.o
 MahalanobisDistance.cpp.o:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/MahalanobisDistance.cpp.o
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/MahalanobisDistance.cpp.o
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/MahalanobisDistance.cpp.o
 .PHONY : MahalanobisDistance.cpp.o
 
 MahalanobisDistance.i: MahalanobisDistance.cpp.i
@@ -230,6 +247,7 @@ MahalanobisDistance.i: MahalanobisDistance.cpp.i
 MahalanobisDistance.cpp.i:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/MahalanobisDistance.cpp.i
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/MahalanobisDistance.cpp.i
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/MahalanobisDistance.cpp.i
 .PHONY : MahalanobisDistance.cpp.i
 
 MahalanobisDistance.s: MahalanobisDistance.cpp.s
@@ -240,6 +258,7 @@ MahalanobisDistance.s: MahalanobisDistance.cpp.s
 MahalanobisDistance.cpp.s:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/MahalanobisDistance.cpp.s
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/MahalanobisDistance.cpp.s
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/MahalanobisDistance.cpp.s
 .PHONY : MahalanobisDistance.cpp.s
 
 PointCollector.o: PointCollector.cpp.o
@@ -250,6 +269,7 @@ PointCollector.o: PointCollector.cpp.o
 PointCollector.cpp.o:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/PointCollector.cpp.o
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/PointCollector.cpp.o
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/PointCollector.cpp.o
 .PHONY : PointCollector.cpp.o
 
 PointCollector.i: PointCollector.cpp.i
@@ -260,6 +280,7 @@ PointCollector.i: PointCollector.cpp.i
 PointCollector.cpp.i:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/PointCollector.cpp.i
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/PointCollector.cpp.i
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/PointCollector.cpp.i
 .PHONY : PointCollector.cpp.i
 
 PointCollector.s: PointCollector.cpp.s
@@ -270,6 +291,7 @@ PointCollector.s: PointCollector.cpp.s
 PointCollector.cpp.s:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/PointCollector.cpp.s
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/PointCollector.cpp.s
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/PointCollector.cpp.s
 .PHONY : PointCollector.cpp.s
 
 PolynomialMahalanobisDistance.o: PolynomialMahalanobisDistance.cpp.o
@@ -280,6 +302,7 @@ PolynomialMahalanobisDistance.o: PolynomialMahalanobisDistance.cpp.o
 PolynomialMahalanobisDistance.cpp.o:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/PolynomialMahalanobisDistance.cpp.o
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/PolynomialMahalanobisDistance.cpp.o
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/PolynomialMahalanobisDistance.cpp.o
 .PHONY : PolynomialMahalanobisDistance.cpp.o
 
 PolynomialMahalanobisDistance.i: PolynomialMahalanobisDistance.cpp.i
@@ -290,6 +313,7 @@ PolynomialMahalanobisDistance.i: PolynomialMahalanobisDistance.cpp.i
 PolynomialMahalanobisDistance.cpp.i:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/PolynomialMahalanobisDistance.cpp.i
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/PolynomialMahalanobisDistance.cpp.i
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/PolynomialMahalanobisDistance.cpp.i
 .PHONY : PolynomialMahalanobisDistance.cpp.i
 
 PolynomialMahalanobisDistance.s: PolynomialMahalanobisDistance.cpp.s
@@ -300,6 +324,7 @@ PolynomialMahalanobisDistance.s: PolynomialMahalanobisDistance.cpp.s
 PolynomialMahalanobisDistance.cpp.s:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/PolynomialMahalanobisDistance.cpp.s
 	$(MAKE) -f CMakeFiles/libmahala.dir/build.make CMakeFiles/libmahala.dir/PolynomialMahalanobisDistance.cpp.s
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/PolynomialMahalanobisDistance.cpp.s
 .PHONY : PolynomialMahalanobisDistance.cpp.s
 
 mahalaLibWrapper.o: mahalaLibWrapper.cpp.o
@@ -328,6 +353,33 @@ mahalaLibWrapper.s: mahalaLibWrapper.cpp.s
 mahalaLibWrapper.cpp.s:
 	$(MAKE) -f CMakeFiles/libmahalapy.dir/build.make CMakeFiles/libmahalapy.dir/mahalaLibWrapper.cpp.s
 .PHONY : mahalaLibWrapper.cpp.s
+
+mahala_test.o: mahala_test.cpp.o
+
+.PHONY : mahala_test.o
+
+# target to build an object file
+mahala_test.cpp.o:
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/mahala_test.cpp.o
+.PHONY : mahala_test.cpp.o
+
+mahala_test.i: mahala_test.cpp.i
+
+.PHONY : mahala_test.i
+
+# target to preprocess a source file
+mahala_test.cpp.i:
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/mahala_test.cpp.i
+.PHONY : mahala_test.cpp.i
+
+mahala_test.s: mahala_test.cpp.s
+
+.PHONY : mahala_test.s
+
+# target to generate assembly for a file
+mahala_test.cpp.s:
+	$(MAKE) -f CMakeFiles/mahala_test.dir/build.make CMakeFiles/mahala_test.dir/mahala_test.cpp.s
+.PHONY : mahala_test.cpp.s
 
 ndarray_converter.o: ndarray_converter.cpp.o
 
@@ -370,6 +422,7 @@ help:
 	@echo "... edit_cache"
 	@echo "... libmahalapy"
 	@echo "... libmahala"
+	@echo "... mahala_test"
 	@echo "... BhattacharyyaDistance.o"
 	@echo "... BhattacharyyaDistance.i"
 	@echo "... BhattacharyyaDistance.s"
@@ -385,6 +438,9 @@ help:
 	@echo "... mahalaLibWrapper.o"
 	@echo "... mahalaLibWrapper.i"
 	@echo "... mahalaLibWrapper.s"
+	@echo "... mahala_test.o"
+	@echo "... mahala_test.i"
+	@echo "... mahala_test.s"
 	@echo "... ndarray_converter.o"
 	@echo "... ndarray_converter.i"
 	@echo "... ndarray_converter.s"

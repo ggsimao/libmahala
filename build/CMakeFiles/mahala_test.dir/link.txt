@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/mahala_test.dir/mahala_test.cpp.o CMakeFiles/mahala_test.dir/PointCollector.cpp.o CMakeFiles/mahala_test.dir/PolynomialMahalanobisDistance.cpp.o CMakeFiles/mahala_test.dir/MahalanobisDistance.cpp.o CMakeFiles/mahala_test.dir/BhattacharyyaDistance.cpp.o  -o mahala_test 

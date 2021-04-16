@@ -68,4 +68,5 @@ set(CMAKE_MAKEFILE_PRODUCTS
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/libmahalapy.dir/DependInfo.cmake"
   "CMakeFiles/libmahala.dir/DependInfo.cmake"
+  "CMakeFiles/mahala_test.dir/DependInfo.cmake"
   )

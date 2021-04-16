@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/acerola/Desktop/libmahala/mahala_test.cpp
+libmahala/MahalanobisDistance.hpp
+/home/acerola/Desktop/libmahala/libmahala/MahalanobisDistance.hpp
+libmahala/BhattacharyyaDistance.hpp
+/home/acerola/Desktop/libmahala/libmahala/BhattacharyyaDistance.hpp
+libmahala/PolynomialMahalanobisDistance.hpp
+/home/acerola/Desktop/libmahala/libmahala/PolynomialMahalanobisDistance.hpp
+libmahala/PointCollector.hpp
+/home/acerola/Desktop/libmahala/libmahala/PointCollector.hpp
+iostream
+-
+chrono
+-
+ctime
+-
+
