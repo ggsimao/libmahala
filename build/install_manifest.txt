@@ -1,0 +1,7 @@
+/usr/local/lib/libmahala.so.1.0.0
+/usr/local/lib/libmahala.so
+/usr/local/include/libmahala/MahalanobisDistance.hpp
+/usr/local/include/libmahala/PolynomialMahalanobisDistance.hpp
+/usr/local/include/libmahala/BhattacharyyaDistance.hpp
+/usr/local/include/libmahala/PointCollector.hpp
+/usr/local/share/pkgconfig/libmahala.pc

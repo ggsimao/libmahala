@@ -1,0 +1,12 @@
+prefix=/usr/local  
+exec_prefix=${prefix}      
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libmahala
+Description: A library for usage of the Mahalanobis distance, the Polynomial Mahalanobis distance and the Bhattacharyya distance in Computer Vision applications
+Version: 1.0.0
+URL: https://github.com/ggsimao/libmahala
+Requires: opencv4
+Libs: -L${libdir} -lmahala
+Cflags: -I${includedir}/libmahala
