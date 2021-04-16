@@ -95,6 +95,7 @@ public:
     Mat pointsToReference(Mat& points);
     /*! \brief Transforma uma imagem em um conjunto de pontos e calcula a distância
                de Mahalanobis entre ela e um ponto de referência
+        \tparam T O mesmo tipo que seria usado no método at<T>() da classe cv::Mat para acessar um elemento de image
         \param image Uma imagem
         \param ref Um ponto na forma de uma matriz coluna
         \return Uma imagem em que o valor de cada pixel é a distância de Mahalanobis entre
@@ -103,6 +104,7 @@ public:
     template <typename T> Mat imageTo(Mat& image, Mat& ref);
     /*! \brief Transforma uma imagem em um conjunto de pontos e calcula a distância
                de Mahalanobis entre ela e o centro da métrica
+        \tparam T O mesmo tipo que seria usado no método at<T>() da classe cv::Mat para acessar um elemento de image
         \param image Uma imagem
         \return Uma imagem em que o valor de cada pixel é a distância de Mahalanobis entre
                 o pixel correspondente na imagem passada como argumento e o centro da métrica
