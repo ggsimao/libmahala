@@ -8,6 +8,12 @@ if(NO_PYTHON)
     set(WITH_PYTHON 0)
 endif()
 
+set(WITH_CPP 1)
+
+if(NO_CPP) 
+    set(WITH_CPP 0)
+endif()
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_SHARED_MODULE_PREFIX "")
 
@@ -15,53 +21,53 @@ find_package(OpenCV 4.0.0 REQUIRED)
 
 include(GNUInstallDirs)
 
-set(LIBMAHALA_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src)
-set(LIBMAHALA_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+# set(LIBMAHALA_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src)
+# set(LIBMAHALA_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 
-add_executable(mahala_test mahala_test.cpp
-                PointCollector.cpp
-                PolynomialMahalanobisDistance.cpp
-                MahalanobisDistance.cpp
-                BhattacharyyaDistance.cpp)
-
-add_library(libmahala SHARED
-                PointCollector.cpp
-                PolynomialMahalanobisDistance.cpp
-                MahalanobisDistance.cpp
-                BhattacharyyaDistance.cpp)
-
+# add_executable(mahala_test mahala_test.cpp
+#                 PointCollector.cpp
+#                 PolynomialMahalanobisDistance.cpp
+#                 MahalanobisDistance.cpp
+#                 BhattacharyyaDistance.cpp)
+# target_include_directories(mahala_test PRIVATE ${PYTHON_INCLUDE_DIRS})
+# target_link_libraries(mahala_test PRIVATE ${OpenCV_LIBS})
 include_directories(${OpenCV_INCLUDE_DIRS})
 
+if(WITH_CPP)
+    add_library(libmahala SHARED
+                    PointCollector.cpp
+                    PolynomialMahalanobisDistance.cpp
+                    MahalanobisDistance.cpp
+                    BhattacharyyaDistance.cpp)
+
+    set_target_properties(libmahala PROPERTIES OUTPUT_NAME "libmahala")
+    set_target_properties(libmahala PROPERTIES PREFIX "")
+    # set_target_properties(libmahala PROPERTIES SUFFIX ".so")
 
 
-set_target_properties(libmahala PROPERTIES OUTPUT_NAME "libmahala")
-set_target_properties(libmahala PROPERTIES PREFIX "")
-# set_target_properties(libmahala PROPERTIES SUFFIX ".so")
+    target_include_directories(libmahala PRIVATE ${PYTHON_INCLUDE_DIRS})
+    target_link_libraries(libmahala PRIVATE ${OpenCV_LIBS})
 
-target_include_directories(mahala_test PRIVATE ${PYTHON_INCLUDE_DIRS})
-target_link_libraries(mahala_test PRIVATE ${OpenCV_LIBS})
+    set_target_properties(libmahala PROPERTIES VERSION ${PROJECT_VERSION})
 
-target_include_directories(libmahala PRIVATE ${PYTHON_INCLUDE_DIRS})
-target_link_libraries(libmahala PRIVATE ${OpenCV_LIBS})
+    configure_file(libmahala.pc.in libmahala.pc @ONLY)
 
-set_target_properties(libmahala PROPERTIES VERSION ${PROJECT_VERSION})
+    set_target_properties(libmahala PROPERTIES PUBLIC_HEADER 
+                            "MahalanobisDistance.hpp;PolynomialMahalanobisDistance.hpp;BhattacharyyaDistance.hpp;PointCollector.hpp")
 
-configure_file(libmahala.pc.in libmahala.pc @ONLY)
+    install(TARGETS libmahala
+                EXPORT LibraryMahalanobisTargets
+                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libmahala)
+    install(EXPORT LibraryMahalanobisTargets
+                FILE LibraryMahalanobisTargets.cmake
+                # NAMESPACE LibraryMahalanobis::
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LibraryMahalanobis
+    )
+    install(FILES ${CMAKE_BINARY_DIR}/libmahala.pc
+                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+endif()
 
-set_target_properties(libmahala PROPERTIES PUBLIC_HEADER 
-                        "MahalanobisDistance.hpp;PolynomialMahalanobisDistance.hpp;BhattacharyyaDistance.hpp;PointCollector.hpp")
-
-install(TARGETS libmahala
-            EXPORT LibraryMahalanobisTargets
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libmahala)
-install(EXPORT LibraryMahalanobisTargets
-            FILE LibraryMahalanobisTargets.cmake
-            # NAMESPACE LibraryMahalanobis::
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LibraryMahalanobis
-)
-install(FILES ${CMAKE_BINARY_DIR}/libmahala.pc
-            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
 if(WITH_PYTHON)
     find_package(Python 3.8.0 COMPONENTS Interpreter Development NumPy REQUIRED)
