@@ -1,0 +1,10 @@
+/usr/local/lib/libmahala.so.1.0.1
+/usr/local/lib/libmahala.so
+/usr/local/include/libmahala/MahalanobisDistance.hpp
+/usr/local/include/libmahala/PolynomialMahalanobisDistance.hpp
+/usr/local/include/libmahala/BhattacharyyaDistance.hpp
+/usr/local/include/libmahala/PointCollector.hpp
+/usr/local/lib/cmake/LibraryMahalanobis/LibraryMahalanobisTargets.cmake
+/usr/local/lib/cmake/LibraryMahalanobis/LibraryMahalanobisTargets-noconfig.cmake
+/usr/local/share/pkgconfig/libmahala.pc
+/home/acerola/anaconda3/lib/python3.8/libmahalapy.so

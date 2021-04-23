@@ -30,8 +30,6 @@ double BhattaDist::calcBetweenPoints(Mat& points1, Mat& points2) {
 
 double BhattaDist::calcBetweenImg(const Mat& image1, const Mat& image2, 
                                   const Mat& mask1, const Mat& mask2) {
-    assert(image1.channels() == _channels.size());
-    assert(image2.channels() == _channels.size());
     vector<Mat> imageVec1, imageVec2;
     imageVec1.push_back(image1);
     imageVec2.push_back(image2);

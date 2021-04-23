@@ -1,0 +1,15 @@
+/home/acerola/Desktop/libmahala/CMakeFiles/install/strip.dir
+/home/acerola/Desktop/libmahala/CMakeFiles/install/local.dir
+/home/acerola/Desktop/libmahala/CMakeFiles/install.dir
+/home/acerola/Desktop/libmahala/CMakeFiles/list_install_components.dir
+/home/acerola/Desktop/libmahala/CMakeFiles/rebuild_cache.dir
+/home/acerola/Desktop/libmahala/CMakeFiles/edit_cache.dir
+/home/acerola/Desktop/libmahala/CMakeFiles/libmahalapy.dir
+/home/acerola/Desktop/libmahala/CMakeFiles/libmahala.dir
+/home/acerola/Desktop/libmahala/CMakeFiles/mahala_test.dir
+/home/acerola/Desktop/libmahala/extern/pybind11/CMakeFiles/install/strip.dir
+/home/acerola/Desktop/libmahala/extern/pybind11/CMakeFiles/install/local.dir
+/home/acerola/Desktop/libmahala/extern/pybind11/CMakeFiles/install.dir
+/home/acerola/Desktop/libmahala/extern/pybind11/CMakeFiles/list_install_components.dir
+/home/acerola/Desktop/libmahala/extern/pybind11/CMakeFiles/rebuild_cache.dir
+/home/acerola/Desktop/libmahala/extern/pybind11/CMakeFiles/edit_cache.dir
