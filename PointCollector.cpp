@@ -41,76 +41,76 @@ PointCollector::PointCollector(Mat& input) {
                 mask = Mat::zeros(input.size(), CV_8UC1);
                 break;
             case 1048625: // 1 key
-                color[0] = max(0.0, color[0]-1);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = max(0.0, cp.color[0]-1);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1048626: // 2 key
-                color[0] = min(255.0, color[0]+1);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = min(255.0, cp.color[0]+1);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1048627: // 3 key
-                color[1] = max(0.0, color[1]-1);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = max(0.0, cp.color[1]-1);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1048628: // 4 key
-                color[1] = min(255.0, color[1]+1);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = min(255.0, cp.color[1]+1);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1048629: // 5 key
-                color[2] = max(0.0, color[2]-1);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = max(0.0, cp.color[2]-1);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1048630: // 6 key
-                color[2] = min(255.0, color[2]+1);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = min(255.0, cp.color[2]+1);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1114145: // SHIFT+1 key
-                color[0] = max(0.0, color[0]-16);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = max(0.0, cp.color[0]-16);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1114176: // SHIFT+2 key
-                color[0] = min(255.0, color[0]+16);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = min(255.0, cp.color[0]+16);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1114147: // SHIFT+3 key
-                color[1] = max(0.0, color[1]-16);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = max(0.0, cp.color[1]-16);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1114148: // SHIFT+4 key
-                color[1] = min(255.0, color[1]+16);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = min(255.0, cp.color[1]+16);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1114149: // SHIFT+5 key
-                color[2] = max(0.0, color[2]-16);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = max(0.0, cp.color[2]-16);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1179223: // SHIFT+6 key
-                color[2] = min(255.0, color[2]+16);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = min(255.0, cp.color[2]+16);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572913: // ALT+1 key
-                color[0] = max(0.0, color[0]-64);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = max(0.0, cp.color[0]-64);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572914: // ALT+2 key
-                color[0] = min(255.0, color[0]+64);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = min(255.0, cp.color[0]+64);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572915: // ALT+3 key
-                color[1] = max(0.0, color[1]-64);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = max(0.0, cp.color[1]-64);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572916: // ALT+4 key
-                color[1] = min(255.0, color[1]+64);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = min(255.0, cp.color[1]+64);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572917: // ALT+5 key
-                color[2] = max(0.0, color[2]-64);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = max(0.0, cp.color[2]-64);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572918: // ALT+6 key
-                color[2] = min(255.0, color[2]+64);
-                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = min(255.0, cp.color[2]+64);
+                redraw(input, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
         }
     }
@@ -160,76 +160,76 @@ PointCollector::PointCollector(const char* path, int flags) {
                 mask = Mat::zeros(inputImage.size(), CV_8UC1);
                 break;
             case 1048625: // 1 key
-                color[0] = max(0.0, color[0]-1);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = max(0.0, cp.color[0]-1);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1048626: // 2 key
-                color[0] = min(255.0, color[0]+1);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = min(255.0, cp.color[0]+1);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1048627: // 3 key
-                color[1] = max(0.0, color[1]-1);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = max(0.0, cp.color[1]-1);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1048628: // 4 key
-                color[1] = min(255.0, color[1]+1);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = min(255.0, cp.color[1]+1);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1048629: // 5 key
-                color[2] = max(0.0, color[2]-1);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = max(0.0, cp.color[2]-1);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1048630: // 6 key
-                color[2] = min(255.0, color[2]+1);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = min(255.0, cp.color[2]+1);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1114145: // SHIFT+1 key
-                color[0] = max(0.0, color[0]-16);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = max(0.0, cp.color[0]-16);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1114176: // SHIFT+2 key
-                color[0] = min(255.0, color[0]+16);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = min(255.0, cp.color[0]+16);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1114147: // SHIFT+3 key
-                color[1] = max(0.0, color[1]-16);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = max(0.0, cp.color[1]-16);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1114148: // SHIFT+4 key
-                color[1] = min(255.0, color[1]+16);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = min(255.0, cp.color[1]+16);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1114149: // SHIFT+5 key
-                color[2] = max(0.0, color[2]-16);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = max(0.0, cp.color[2]-16);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1179223: // SHIFT+6 key
-                color[2] = min(255.0, color[2]+16);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = min(255.0, cp.color[2]+16);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572913: // ALT+1 key
-                color[0] = max(0.0, color[0]-64);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = max(0.0, cp.color[0]-64);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572914: // ALT+2 key
-                color[0] = min(255.0, color[0]+64);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[0] = min(255.0, cp.color[0]+64);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572915: // ALT+3 key
-                color[1] = max(0.0, color[1]-64);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = max(0.0, cp.color[1]-64);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572916: // ALT+4 key
-                color[1] = min(255.0, color[1]+64);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[1] = min(255.0, cp.color[1]+64);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572917: // ALT+5 key
-                color[2] = max(0.0, color[2]-64);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = max(0.0, cp.color[2]-64);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
             case 1572918: // ALT+6 key
-                color[2] = min(255.0, color[2]+64);
-                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, color);
+                cp.color[2] = min(255.0, cp.color[2]+64);
+                redraw(inputImage, paintedImage, _collectedCoordinates, _referenceCoordinate, cp.color);
                 break;
         }
     }
@@ -281,6 +281,7 @@ void PointCollector::onMouse(int event, int x, int y, int flags, void* param) {
     if (event == EVENT_RBUTTONDOWN) pressedRight = true;
     if (event == EVENT_RBUTTONUP) pressedRight = false;
     if (pressedLeft || pressedRight) {
+        // cout << mp->color << endl;
         int chans = mp->img.channels();
         x = max(min(mp->img.cols-1, x), 0);
         y = max(min(mp->img.rows-1, y), 0);
@@ -355,7 +356,7 @@ void PointCollector::onMouse(int event, int x, int y, int flags, void* param) {
             if (mp->mask.at<uchar>(y, x) == 0) {
                 mp->pixels.push_back(bgr);
                 mp->coordinates.push_back(xy);
-                circle(mp->paintedImg, Point(x,y), 3, Scalar(255, 255, 255), -1);
+                circle(mp->paintedImg, Point(x,y), 3, mp->color, -1);
                 mp->mask.at<uchar>(y, x) = (uchar)255;
             }
             // cout << mp->coordinates.rows << endl;
